@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     class UserTypes(models.TextChoices):
         TEACHER = "TE", "آموزگار"
         STUDENT = "ST", "دانش آموز"
