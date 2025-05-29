@@ -40,7 +40,8 @@ INSTALLED_APPS = [
 
     # Custom apps
     'Users.apps.UsersConfig',
-    'Courses',
+    'Courses.apps.CoursesConfig',
+    'Profiles.apps.ProfilesConfig',
 ]
 
 MIDDLEWARE = [
