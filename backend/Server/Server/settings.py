@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    # installed apps
+    'ckeditor',
     # Custom apps
     'Users.apps.UsersConfig',
     'Courses',
@@ -129,3 +130,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Suth user model
 AUTH_USER_MODEL = 'Users.USer'
+
+
+# CKEditor Settings
+CKEDITOR_UPLOAD_PATH = 'media/ckeditor/'
+CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+CKEDITOR_CONFIGS = {
+    'default':
+        {
+            'toolbar': 'advanced'
+        }
+}
+
