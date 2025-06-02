@@ -89,4 +89,20 @@ class Course(models.Model):
     def __str__(self):
         return self.title  # String representation of the course
     
-    
+
+# Course content model for storing additional resources (images, videos, etc.)
+class CourseContent(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True, verbose_name='عنوان')  # Optional title for content
+    content = RichTextUploadingField(blank=True, null=True, verbose_name='توضیحات')  # Rich text field for detailed content
+    image = models.ImageField(upload_to="Courses/content/images/", null=True, blank=True, verbose_name='تصویر')  # Optional image for content
+    video = models.FileField(upload_to="Courses/Content/videos/", null=True, blank=True, verbose_name='ویدیو')  # Optional video file
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Timestamp when updated
+
+    class Meta:
+        verbose_name = "محتوای دوره"
+        verbose_name_plural = "محتوا های دوره ها"
+
+    def __str__(self):
+        return self.title if self.title else "Course Content"  # String representation with a fallback
+
