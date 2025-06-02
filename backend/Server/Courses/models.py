@@ -106,3 +106,20 @@ class CourseContent(models.Model):
     def __str__(self):
         return self.title if self.title else "Course Content"  # String representation with a fallback
 
+
+# FAQ model for frequently asked questions related to a course
+class CourseFaq(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='دوره مربوطه')  # Links FAQ to a specific course
+    question = models.CharField(max_length=100, verbose_name='عنوان سوال')  # Stores the question text
+    answer = models.TextField(verbose_name='جواب سوال')  # Stores the answer text
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Timestamp when updated
+
+    class Meta:
+        verbose_name = 'سوال متداول'
+        verbose_name_plural = 'سوالات متداول'
+
+    def __str__(self):
+        return self.question  # String representation of the FAQ
+
+
