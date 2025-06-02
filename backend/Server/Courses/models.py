@@ -141,3 +141,31 @@ class CourseChapter(models.Model):
         return f'{self.title} - {self.course.title}'  # String representation of the chapter
 
 
+# Course session model for storing individual lesson videos and related resources
+class CourseSession(models.Model):
+    chapter = models.ForeignKey(CourseChapter, on_delete=models.CASCADE, verbose_name='فصل مربوطه')  # Link to chapter
+    title = models.CharField(max_length=200, unique=True, verbose_name='عنوان ویدیو')  # Unique video title
+    video_link = models.FileField(upload_to='Courses/Sessions/video', verbose_name='ویدیو')  # Video file
+    file_link = models.URLField(max_length=500, null=True, blank=True, verbose_name='لینک فایل')  # Optional file link
+    order = models.PositiveIntegerField(verbose_name='ترتیب ویدیو')  # Ordering index for sessions
+    is_paid = models.BooleanField(default=False, verbose_name='پولیه؟')  # Indicates if the session requires payment
+    duration = models.DurationField(default=timedelta(), verbose_name='مدت زمان ویدیو')  # Duration of the session
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Timestamp when updated
+
+    class Meta:
+        verbose_name = 'جلسه'
+        verbose_name_plural = 'جلسات'
+        ordering = ['order']  # Ensuring ascending order
+
+    def formatted_duration(self):
+        """Formats duration into hours, minutes, and seconds"""
+        total_seconds = int(self.duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}" if hours else f"{minutes:02}:{seconds:02}"
+
+    def __str__(self):
+        return f"{self.title} - {self.chapter.title}"  # String representation of the session
+
+
