@@ -123,3 +123,21 @@ class CourseFaq(models.Model):
         return self.question  # String representation of the FAQ
 
 
+# Course chapter model organizing course content into structured sections
+class CourseChapter(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='دوره مربوطه')  # Link to the parent course
+    title = models.CharField(max_length=150, unique=True, verbose_name='عنوان فصل')  # Unique title for the chapter
+    duration = models.DurationField(default=timedelta(), verbose_name='مدت زمان')  # Duration of the chapter
+    order = models.PositiveIntegerField(verbose_name='ترتیب فصل')  # Ordering index for chapters
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Timestamp when updated
+
+    class Meta:
+        verbose_name = 'فصل'
+        verbose_name_plural = 'فصل ها'
+        ordering = ['order']  # Changed to ascending order for better organization
+
+    def __str__(self):
+        return f'{self.title} - {self.course.title}'  # String representation of the chapter
+
+
