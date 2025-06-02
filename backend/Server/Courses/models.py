@@ -169,3 +169,19 @@ class CourseSession(models.Model):
         return f"{self.title} - {self.chapter.title}"  # String representation of the session
 
 
+# Comment model for storing user feedback on courses
+class Comment(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='comments', verbose_name='دوره مربوطه')  # Link to a course
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', verbose_name='کاربر')  # Link to the user who commented
+    content = models.TextField(verbose_name='نظر')  # Comment text
+    popular_comment = models.BooleanField(default=False, verbose_name='آیا نظر به نظرات محبوب اضافه شود؟')  # Marks comment as popular
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+
+    class Meta:
+        verbose_name = 'نظر'
+        verbose_name_plural = 'نظرات'
+
+    def __str__(self):
+        return self.content[:50]  # Increased preview length for better readability
+
+
