@@ -185,3 +185,17 @@ class Comment(models.Model):
         return self.content[:50]  # Increased preview length for better readability
 
 
+# Reply model for storing responses to comments
+class CommentReply(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies', verbose_name='نظر مربوطه')  # Link to original comment
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')  # User replying
+    content = models.TextField(verbose_name='نظر')  # Reply text
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
+    
+    class Meta:
+        verbose_name = 'ریپلای'
+        verbose_name_plural = 'ریپلای ها'
+
+    def __str__(self):
+        return self.content[:50]  # Consistent preview length
+
