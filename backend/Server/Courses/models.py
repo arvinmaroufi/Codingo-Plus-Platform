@@ -35,3 +35,58 @@ class SubCategory(models.Model):
     def __str__(self):
         return self.title  # String representation of the sub-category
     
+
+# Course model representing an individual course
+class Course(models.Model):
+    class CourseStatusChoices(models.TextChoices):
+        COMPLETED = 'C', 'تکمیل شده'
+        IN_PROGRESS = 'I', 'درحال برگزاری'
+        STARTING_SOON = 'S', 'شروع به زودی'
+
+    class CoursePaymentStatusChoices(models.TextChoices):
+        FREE = 'F', 'رایگان'
+        PREMIUM = 'P', 'پولی'
+
+    class CourseLevelStatusChoices(models.TextChoices):
+        INTRODUCTORY = 'IN', 'مقدماتی'
+        ADVANCED = 'AD', 'پیشرفته'
+        INTRODUCTORY_ADVANCED = 'IA', 'مقدماتی تا پیشرفته'
+        
+    class PublishStatusChoices(models.TextChoices):
+        DRAFT = 'DR', 'پیش نویس شود'
+        PUBLISHED = 'PD', 'منتشر شود'
+    
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='مدرس دوره')  # Reference to User model (teacher)
+    category = models.ManyToManyField(SubCategory, related_name='courses', verbose_name='دسته بندی')  # Many-to-many relationship with subcategories
+    title = models.CharField(max_length=200, unique=True, verbose_name='عنوان دوره')  # Course title
+    slug = models.SlugField(max_length=200, unique=True, verbose_name='نامک')  # SEO slug
+    description = RichTextUploadingField(verbose_name='توضیحات دوره')  # Rich text description
+    duration = models.DurationField(default=timedelta(), verbose_name='مدت زمان دوره')  # Course duration
+    price = models.IntegerField(blank=True, null=True, verbose_name='قیمت دوره')  # Course price
+    master_note = models.CharField(max_length=200, null=True, blank=True, verbose_name="یادداشت مدرس")  # Instructor note
+    payment_status = models.CharField(choices=CoursePaymentStatusChoices.choices, max_length=10, default=CoursePaymentStatusChoices.PREMIUM, verbose_name='آیا دوره پولی است یا رایگان؟')  # Free or premium course
+    poster = models.ImageField(upload_to="Courses/posters/", blank=True, null=True, verbose_name='پوستر دوره')  # Course poster image
+    banner = models.ImageField(upload_to="Courses/banners/", blank=True, null=True, verbose_name='بنر دوره')  # Course banner
+    level_status = models.CharField(choices=CourseLevelStatusChoices.choices, max_length=30, default=CourseLevelStatusChoices.INTRODUCTORY, verbose_name='سطح دوره')  # Course level
+    course_status = models.CharField(choices=CourseStatusChoices.choices, max_length=20, default=CourseStatusChoices.STARTING_SOON, verbose_name='وضعیت دوره')  # Course status
+    status = models.CharField(choices=PublishStatusChoices.choices, max_length=10, default=PublishStatusChoices.DRAFT, verbose_name='وضعیت')  # Publish status
+    is_recommended = models.BooleanField(default=False, verbose_name='آیا دوره، پیشنهادی است؟')  # Recommended flag
+    views = models.IntegerField(default=0, verbose_name='بازدید ها')  # Course views
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Creation timestamp
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Update timestamp
+
+    class Meta:
+        verbose_name = 'دوره'
+        verbose_name_plural = 'دوره ها'
+
+    def formatted_duration(self):
+        """Formats duration into hours, minutes, and seconds"""
+        total_seconds = int(self.duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}" if hours else f"{minutes:02}:{seconds:02}"
+
+    def __str__(self):
+        return self.title  # String representation of the course
+    
+    
