@@ -52,4 +52,27 @@ class Ticket(models.Model):
         verbose_name_plural = "تیکت‌ ها"
         ordering = ["-created_at"]  # Orders tickets from newest to oldest
         
+
+class TicketMessage(models.Model):
+    """Represents messages exchanged within a ticket."""
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="messages", verbose_name="تیکت")  # Links the message to a specific ticket
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")  # User who sent the message
+    message = models.TextField(verbose_name="پیام")  # Content of the message
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")  # Timestamp when the message was created
+
+    def save(self, *args, **kwargs):
+        """Ensures a user is assigned to a message before saving."""
+        if not self.user_id:
+            self.user = self.ticket.user
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        """Returns a human-readable representation of the message."""
+        return f"پیام برای تیکت #{self.ticket.id}"
+
+    class Meta:
+        """Meta options for the TicketMessage model."""
+        verbose_name = "پیام تیکت"
+        verbose_name_plural = "پیام‌ های تیکت"
+        ordering = ["created_at"]  # Orders messages from oldest to newest
         
