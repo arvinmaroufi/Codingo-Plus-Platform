@@ -78,3 +78,19 @@ class BlogPost(models.Model):
         return self.title
     
 
+class Comment(models.Model):
+    """Represents user comments on blog posts."""
+    blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='blogs_comments', verbose_name='پست مربوطه')  
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blogs_comments', verbose_name='کاربر')  
+    content = models.TextField(verbose_name='نظر')  
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
+
+    class Meta:
+        verbose_name = 'نظر'
+        verbose_name_plural = 'نظرات'
+
+    def __str__(self):
+        return self.content[:50]
+    
+    
+    
