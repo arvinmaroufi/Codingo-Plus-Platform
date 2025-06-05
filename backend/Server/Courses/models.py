@@ -24,7 +24,7 @@ class SubCategory(models.Model):
     parent = models.ForeignKey(MainCategory, on_delete=models.CASCADE, related_name='subcategories', verbose_name='دسته بندی والد')  # Establish relationship with the main category
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')  # Unique sub-category title
     slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')  # SEO slug
-    icon = models.FileField(upload_to='SubCategory_icons/')  # Sub-category icon
+    icon = models.FileField(upload_to='Courses/SubCategory_icons/')  # Sub-category icon
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')  # Timestamp when updated
 
