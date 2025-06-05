@@ -7,7 +7,7 @@ from datetime import timedelta  # Used for duration fields
 class MainCategory(models.Model):
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')  # Unique title for the category
     slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')  # Slug for SEO-friendly URLs
-    icon = models.FileField(upload_to='SubCategory_icons/')  # Category icon image
+    icon = models.FileField(upload_to='Courses/SubCategory_icons/')  # Category icon image
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')  # Timestamp when updated
 
