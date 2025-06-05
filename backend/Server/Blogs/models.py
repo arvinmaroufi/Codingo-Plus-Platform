@@ -59,6 +59,7 @@ class BlogPost(models.Model):
 
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='نویسنده پست')  
     category = models.ManyToManyField(SubCategory, related_name='blogs', verbose_name='دسته بندی')  
+    tag = models.ManyToManyField(Tag, blank=True, null=True, related_name='tags', verbose_name='برچسب')
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان پست')  
     slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')  
     description = RichTextUploadingField(verbose_name='توضیحات')  # Rich text content using CKEditor
