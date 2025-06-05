@@ -1,4 +1,6 @@
 from django.db import models
+from Users.models import User  # Importing the User model from the Users app
+from ckeditor_uploader.fields import RichTextUploadingField  # Rich text editor for descriptions
 
 
 class MainCategory(models.Model):
@@ -48,4 +50,30 @@ class Tag(models.Model):
     def __str__(self):
         return self.title
 
+
+class BlogPost(models.Model):
+    """Represents a blog post with categories, tags, author information, and metadata."""
+    class PublishStatusChoices(models.TextChoices):
+        DRAFT = 'DR', 'پیش نویس شود'
+        PUBLISHED = 'PD', 'منتشر شود'
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='نویسنده پست')  
+    category = models.ManyToManyField(SubCategory, related_name='blogs', verbose_name='دسته بندی')  
+    title = models.CharField(max_length=100, unique=True, verbose_name='عنوان پست')  
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')  
+    description = RichTextUploadingField(verbose_name='توضیحات')  # Rich text content using CKEditor
+    poster = models.ImageField(upload_to="Blogs/posters/", blank=True, null=True, verbose_name='پوستر پست')  
+    banner = models.ImageField(upload_to="Blogs/banners/", blank=True, null=True, verbose_name='بنر پست')  
+    status = models.CharField(choices=PublishStatusChoices.choices, max_length=10, default=PublishStatusChoices.DRAFT, verbose_name='وضعیت')  
+    views = models.PositiveIntegerField(default=0, verbose_name='بازدید ها')  # Using PositiveIntegerField
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ساخت')  
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')  
+
+    class Meta:
+        verbose_name = 'پست بلاگ'
+        verbose_name_plural = 'پست های بلاگ'
+
+    def __str__(self):
+        return self.title
+    
 
