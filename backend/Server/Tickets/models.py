@@ -80,7 +80,7 @@ class TicketMessage(models.Model):
 class TicketAttachment(models.Model):
     """Represents file attachments associated with ticket messages."""
     message = models.ForeignKey(TicketMessage, on_delete=models.CASCADE, related_name="attachments", verbose_name="پیام")  # Links the attachment to a specific message
-    file = models.FileField(upload_to="ticket_attachments/", verbose_name="فایل")  # Stores the uploaded file
+    file = models.FileField(upload_to="Tickets/ticket_attachments/", verbose_name="فایل")  # Stores the uploaded file
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")  # Timestamp when the file was uploaded
 
     def __str__(self):
