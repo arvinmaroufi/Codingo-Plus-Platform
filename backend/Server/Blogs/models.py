@@ -93,4 +93,18 @@ class Comment(models.Model):
         return self.content[:50]
     
     
+class CommentReply(models.Model):
+    """Represents replies to user comments."""
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='blogs_replies', verbose_name='نظر مربوطه')  
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_comment_replies', verbose_name='کاربر')  
+    content = models.TextField(verbose_name='نظر')  
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  
+
+    class Meta:
+        verbose_name = 'ریپلای'
+        verbose_name_plural = 'ریپلای ها'
+
+    def __str__(self):
+        return self.content[:50]
+    
     
