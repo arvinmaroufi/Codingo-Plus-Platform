@@ -188,7 +188,7 @@ class Comment(models.Model):
 # Reply model for storing responses to comments
 class CommentReply(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies', verbose_name='نظر مربوطه')  # Link to original comment
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='کاربر')  # User replying
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_comment_replies', verbose_name='کاربر')  # User replying
     content = models.TextField(verbose_name='نظر')  # Reply text
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')  # Timestamp when created
     
