@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'Profiles.apps.ProfilesConfig',
     'Tickets.apps.TicketsConfig',
     'Blogs.apps.BlogsConfig',
+    'Authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
