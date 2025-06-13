@@ -1,5 +1,7 @@
 from rest_framework import serializers, validators
 
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import UserRegisterOneTimePassword
 
 
@@ -166,3 +168,61 @@ class UserRegisterOneTimePasswordSerializer(serializers.ModelSerializer):
         user_register_otp.save()
 
         return {'phone': user_register_otp.phone, 'token': token, 'code': code}
+
+
+
+
+class UserRegisterOneTimePasswordValidateSerializer(serializers.Serializer):
+
+    code = serializers.CharField(max_length=6, min_length=6, required=True)  
+
+    def validate(self, attrs):
+        
+        otp_token = self.context.get('otp_token')
+
+        otp = OneTimePassword.objects.get(token=otp_token)
+
+        if otp.status_validation() == 'ACT':
+
+            if otp.code == attrs['code']:
+                return attrs
+            else:
+                raise serializers.ValidationError({'code': 'Invalid OTP code.'})
+        else:
+            raise serializers.ValidationError('Inactive OTP')
+    
+
+    def create(self, validated_data, token):
+
+        otp = OneTimePassword.objects.get(token=token)
+
+        otp.is_used = True
+        otp.save()
+
+        user_register_otp = otp.registration_otps
+
+        user = User.objects.create_user(
+            email=user_register_otp.email,
+            phone=user_register_otp.phone,
+            username=user_register_otp.username,
+            password=user_register_otp.password,
+            full_name=user_register_otp.full_name,
+            user_type=user_register_otp.user_type
+        )
+
+        user.save()
+
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'user_type': user.user_type
+            },
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        }
