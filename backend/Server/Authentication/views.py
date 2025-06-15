@@ -10,6 +10,8 @@ from .serializers import (
     LoginPasswordSerializer,
     UserRegisterOneTimePasswordSerializer,
     UserRegisterOneTimePasswordValidateSerializer,
+    UserLoginOneTimePasswordSerializer,
+    UserLoginOneTimePasswordValidateSerializer
 )
 from .permissions import IsNotAuthenticated
 
@@ -49,6 +51,61 @@ class LoginPasswordAPIView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+
+
+class UserLoginRequestOtpAPIView(APIView):
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            serializer = UserLoginOneTimePasswordSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                otp_data = serializer.create(validated_data=serializer.validated_data)
+
+                return Response(
+                    {
+                        'Detail': {
+                            'Message': 'Otp created successfully',
+                            'token': otp_data['token'], 
+                            'code': otp_data['code']
+                        }
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'Detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserLoginValidateOtpAPIView(APIView):
+    def post(self, request, token):
+        otp = get_object_or_404(OneTimePassword, token=token)
+
+        login_otp = otp.login_otps.get()
+        
+        serializer = UserLoginOneTimePasswordValidateSerializer(data=request.data, context={'otp_token': token})
+
+        if request.user.is_authenticated:
+            return Response({"message": "شما قبلاً وارد شده‌اید"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            if serializer.is_valid():
+                user = login_otp.user
+
+                if not user.is_active:
+                    return Response({'error': 'کاربر فعال نیست'}, status=status.HTTP_401_UNAUTHORIZED)
+                
+                refresh = RefreshToken.for_user(user)
+                
+                return Response(
+                    {
+                        'refresh': str(refresh), 
+                        'access': str(refresh.access_token)
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRegisterRequestOtpAPIView(APIView):
