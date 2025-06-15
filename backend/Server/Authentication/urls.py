@@ -7,6 +7,9 @@ from . import views
 app_name = "authentication"
 
 urlpatterns = [
-    path('login-password/', views.LoginPasswordAPIView.as_view(), name="login-password")
+    path('login-password/', views.LoginPasswordAPIView.as_view(), name="login-password"),
+
+    path('register-request-otp/', views.UserRegisterRequestOtpAPIView.as_view(), name="register-request-otp"),
+    path('register-validate-otp/', views.UserRegisterValidateOtpAPIView.as_view(), name="register-validate-otp")
 ]
 
