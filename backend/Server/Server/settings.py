@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'Tickets.apps.TicketsConfig',
     'Blogs.apps.BlogsConfig',
     'Authentication.apps.AuthenticationConfig',
+    'Otps.apps.OtpsConfig',
 ]
 
 MIDDLEWARE = [
