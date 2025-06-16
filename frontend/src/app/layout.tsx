@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className="">
+      <body className="dark:bg-base-dark bg-base-light">
         <Navbar />
         {children}
       </body>
