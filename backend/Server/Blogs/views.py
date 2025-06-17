@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Blog, MainCategory, SubCategory
-from .serializers import BlogSerializer, MainCategorySerializer, SubCategorySerializer
+from .models import Blog, MainCategory, SubCategory, Tag
+from .serializers import BlogSerializer, MainCategorySerializer, SubCategorySerializer, TagSerializer
 from .permissions import IsAdminOrAuthor, IsAdminOrReadOnly
 
 
@@ -128,5 +128,41 @@ class SubCategoryViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The SubCategory is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+
+class TagViewSet(ViewSet):
+
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+    
+    def list(self):
+        queryset = Tag.objects.all()
+        serializer = TagSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def create(self, request):
+        serializer = TagSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Tag is added.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    def update(self, request, slug):
+        instance = get_object_or_404(Tag, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        serializer = TagSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Tag is updated.'}, status=status.HTTP_205_RESET_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, slug):
+        instance = get_object_or_404(Tag, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'The Tag is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
     
     
