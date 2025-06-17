@@ -1,6 +1,13 @@
 import type { Config } from 'tailwindcss'
 
 
+const svgToDataUri = require("mini-svg-data-uri");
+
+const colors = require("tailwindcss/colors");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
+
 
 const config: Config = {
   content: [
@@ -12,9 +19,40 @@ const config: Config = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // Dark theme colors
+        'base-dark': '#031525',
+        'primary-dark': '#0794B0',
+        'secondary-dark': '#20CCC7',
+        'main-text-dark': '#DAEBE7',
+        'highlight-text-dark': '#E1F0F7',
+        // Light theme colors
+        'base-light': '#EAF1F0',
+        'primary-light': '#63C9DD',
+        'secondary-light': '#AAE4E2',
+        'main-text-light': '#04364C',
+        'highlight-text-light': '#DAEBE7',
+      },
+      animation: {
+        spotlight: "spotlight 2s ease .75s 1 forwards",
+      },
+      keyframes: {
+        spotlight: {
+          "0%": {
+            opacity: 0,
+            transform: "translate(-72%, -62%) scale(0.5)",
+          },
+          "100%": {
+            opacity: 1,
+            transform: "translate(-50%,-40%) scale(1)",
+          },
+        },
+      },
+    },
   },
   plugins: [],
+  'darkMode': 'class',
 }
 
 export default config
