@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import ThemeSwitcher from "../ThemeSwitcher";
 
 
 
@@ -71,6 +72,7 @@ export const FloatingNav = ({
             <span className="hidden sm:block text-sm">{navItem.name}</span>
           </Link>
         ))}
+        <ThemeSwitcher />
       </motion.div>
     </AnimatePresence>
   );

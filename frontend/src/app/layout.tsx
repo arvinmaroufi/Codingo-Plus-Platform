@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/main/navbar";
+import Theme from "@/providers/ThemeProvider";
+
 
 
 export const metadata: Metadata = {
@@ -14,10 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl">
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body className="dark:bg-base-dark bg-base-light">
-        <Navbar />
-        {children}
+        <Theme>
+          <Navbar />
+          {children}
+        </Theme>
       </body>
     </html>
   );
