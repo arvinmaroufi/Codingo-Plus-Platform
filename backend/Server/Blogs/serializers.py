@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Blog, SubCategory, BlogContent, MainCategory, Tag
+from .models import Blog, SubCategory, BlogContent, MainCategory, Tag, CommentReply
 
 
 
@@ -220,3 +220,30 @@ class BlogSerializer(serializers.ModelSerializer):
 
         
         return instance
+
+
+
+class CommentReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReply
+        fields = [
+            'id',
+            'user',
+            'content',
+            'created_at',
+            'approved',
+        ]
+        read_only_fields = ['user', 'created_at']
+        
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['user'] = request.user
+        return CommentReply.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.approved = validated_data.get('approved', instance.approved)
+        instance.save()
+        
+        return instance
+    
