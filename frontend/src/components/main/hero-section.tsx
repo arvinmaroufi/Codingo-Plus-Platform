@@ -7,39 +7,7 @@ import { TextGenerateEffect } from "../ui/text-generate-effect";
 
 const MainHeroSection = () => {
   return (
-    <div className="relative pb-20 pt-36">
-      {/**
-       *  UI: Spotlights
-       *  Link: https://ui.aceternity.com/components/spotlight
-       */}
-      <div>
-        {/* Ensure the components use absolute positioning */}
-        <Spotlight className="absolute -top-40 left-0 md:hidden" fill="white" />
-        <Spotlight
-          className="absolute h-[80vh] w-[50vw] top-10 left-full translate-x-[-100%]"
-          fill="green"
-        />
-        <Spotlight
-          className="absolute h-[80vh] w-[50vw] top-10 left-full translate-x-[-100%]"
-          fill="green"
-        />
-        <Spotlight
-          className="absolute h-[30vh] w-[30vw] top-[30px] left-[40px]"
-          fill="green"
-        />
-        <Spotlight
-          className="absolute h-[80vh] w-[50vw] top-[28px] left-[80px]"
-          fill="blue"
-        />
-        <Spotlight
-          className="absolute h-[80vh] w-[50vw] top-[12px] left-[11px]"
-          fill="blue"
-        />
-        <Spotlight
-          className="absolute h-[80vh] w-[50vw] top-[19px] left-[30px]"
-          fill="blue"
-        />
-      </div>
+    <div className="relative pb-5 pt-12">
 
       {/**
        *  UI: grid
@@ -47,7 +15,7 @@ const MainHeroSection = () => {
        *  0.2 to 0.03
        */}
       <div
-        className="h-screen w-full bg-base-light dark:bg-base-dark bg-grid-base-dark/[0.03] bg-grid-base-dark-100/[0.2] 
+        className="h-full w-auto bg-base-light dark:bg-base-dark bg-grid-base-dark/[0.03] bg-grid-base-dark-100/[0.2] 
            absolute top-0 left-0 flex items-center justify-center"
       >
         {/* Radial gradient for the container to give a faded look */}
