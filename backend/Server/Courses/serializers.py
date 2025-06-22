@@ -13,6 +13,19 @@ class MainCategorySerializer(serializers.ModelSerializer):
         read_only_fields = ('created_at', 'updated_at')
         # All fields are writable except the auto-managed timestamps
 
+    def create(self, validated_data):
+        return MainCategory.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.icon = validated_data.get('icon', instance.icon)
+        instance.description = validated_data.get('description', instance.description)
+        instance.color_code = validated_data.get('color_code', instance.color_code)
+        instance.save()
+        
+        return instance
+
 
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
