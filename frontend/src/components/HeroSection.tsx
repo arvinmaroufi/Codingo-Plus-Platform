@@ -1,11 +1,10 @@
 import { FaLocationArrow } from "react-icons/fa6";
-import MagicButton from "../magic-button";
-import { Spotlight } from "../ui/spotlight";
-import { TextGenerateEffect } from "../ui/text-generate-effect";
+import MagicButton from "./MagicButton";
+import { TextGenerateEffect } from "./ui/TextGenerateEffect"; 
 
 
 
-const MainHeroSection = () => {
+const HeroSection = () => {
   return (
     <div className="relative pb-5 pt-12">
 
@@ -57,4 +56,4 @@ const MainHeroSection = () => {
   );
 };
 
-export default MainHeroSection;
+export default HeroSection;

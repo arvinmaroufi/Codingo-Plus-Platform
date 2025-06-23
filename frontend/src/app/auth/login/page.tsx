@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/imput";
+import { Label } from "@/components/ui/Label";
+import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
 import {
@@ -9,7 +9,7 @@ import {
   IconBrandGoogle,
   IconBrandOnlyfans,
 } from "@tabler/icons-react";
-import MainHeroSection from "@/components/main/hero-section";
+import HeroSection from "@/components/HeroSection";
 
 
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     return (
         <main className="flex justify-between items-center gap-6 flex-col mx-auto sm:px-10 px-5">
-          <MainHeroSection />
+          <HeroSection />
           <div className="shadow-input mx-auto max-w-md rounded-none bg-highlight-text-dark  p-4 md:rounded-2xl md:p-8 dark:bg-main-text-light">
               <h2 className="text-xl font-bold text-main-text-light dark:text-main-text-dark">
                   به کدنیگو پلاس خوش آمدید

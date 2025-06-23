@@ -4,7 +4,7 @@ import React from 'react'
 import { FaBook, FaHome, FaMedal, FaRegFileCode } from 'react-icons/fa';
 import { MdOutlineLibraryBooks } from "react-icons/md";
 import Link from 'next/link';
-import { FloatingNav } from '../ui/floating-navbar';
+import { FloatingNav } from './ui/FloatingNavbar'; 
 
 
 function Navbar() {

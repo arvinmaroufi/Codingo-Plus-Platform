@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { Input } from "../ui/imput"; // adjust path as needed
-import { cn } from "@/lib/utils";
-import { Label } from "../ui/label";
+import { Input } from "../ui/Input"; // adjust path as needed
+
+
 
 export interface OTPInputProps {
   length?: number;
