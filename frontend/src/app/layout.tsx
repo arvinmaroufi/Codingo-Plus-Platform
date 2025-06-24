@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/main/navbar";
+import Navbar from "@/components/Navbar";
 import Theme from "@/providers/ThemeProvider";
 
 
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className="dark:bg-base-dark bg-base-light">
+      <body className="dark:bg-base-dark bg-base-light font-custom">
         <Theme>
           <Navbar />
           {children}
