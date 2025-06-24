@@ -20,6 +20,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        custom: ['Gandom', 'sans-serif'],
+      },
       colors: {
         // Dark theme colors
         'base-dark': '#031525',

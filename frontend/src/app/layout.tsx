@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className="dark:bg-base-dark bg-base-light">
+      <body className="dark:bg-base-dark bg-base-light font-custom">
         <Theme>
           <Navbar />
           {children}
