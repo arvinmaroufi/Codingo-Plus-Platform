@@ -50,3 +50,25 @@ class TicketRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+
+
+class TicketMessageRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.TicketMessageViewSet, basename='ticketmessage')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.TicketMessageViewSet.as_view({'get': 'list'})),
+                path('create/', views.TicketMessageViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    path('', views.TicketMessageViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                ])),
+            ])),
+        ]
+        return custom_urls
