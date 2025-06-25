@@ -98,6 +98,18 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('created_at', 'updated_at')
 
+    def create(self, validated_data):
+        query = Tag.objects.create(**validated_data)
+        query.save()
+        return query
+    
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.slug = validated_data.get('slug', instance.slug)
+
+        instance.save()
+        return instance
+
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
