@@ -69,99 +69,93 @@ class Tag(models.Model):
 # -------------------- Course -------------------- #
 
 class Course(models.Model):
-    class CourseStatusChoices(models.TextChoices):
+    # ── Choice enums ──
+    class Status(models.TextChoices):
         COMPLETED = 'C', 'تکمیل شده'
         IN_PROGRESS = 'I', 'درحال برگزاری'
         STARTING_SOON = 'S', 'شروع به زودی'
 
-    class CoursePaymentStatusChoices(models.TextChoices):
+    class Payment(models.TextChoices):
         FREE = 'F', 'رایگان'
         PREMIUM = 'P', 'پولی'
 
-    class CourseLevelStatusChoices(models.TextChoices):
-        INTRODUCTORY = 'IN', 'مقدمه‌ای'
-        INTERMEDIATE = 'IM', 'متوسط'
-        ADVANCED = 'AD', 'پیشرفته'
-        INTRODUCTORY_ADVANCED = 'IA', 'مقدماتی تا پیشرفته'
-        
-    class PublishStatusChoices(models.TextChoices):
+    class Level(models.TextChoices):
+        INTRO = 'IN', 'مقدمه‌ای'
+        MID = 'IM', 'متوسط'
+        ADV = 'AD', 'پیشرفته'
+        FULL = 'IA', 'مقدماتی تا پیشرفته'
+
+    class Publish(models.TextChoices):
         DRAFT = 'DR', 'پیش نویس'
         PUBLISHED = 'PD', 'منتشر شده'
-    
-    class LanguageChoices(models.TextChoices):
-        PERSIAN = 'FA', 'فارسی'
-        ENGLISH = 'EN', 'انگلیسی'
 
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='مدرس دوره')
-    category = models.ManyToManyField(SubCategory, related_name='courses', verbose_name='دسته بندی')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='courses', verbose_name='برچسب‌ها')
-    title = models.CharField(max_length=200, unique=True, verbose_name='عنوان دوره')
-    slug = models.SlugField(max_length=200, unique=True, verbose_name='نامک')
-    short_description = models.CharField(max_length=500, blank=True, null=True, verbose_name='توضیح کوتاه دوره')
-    description = RichTextUploadingField(verbose_name='توضیحات دوره')
-    prerequisites = models.TextField(blank=True, null=True, verbose_name='پیش نیازها')
-    learning_outcomes = models.TextField(blank=True, null=True, verbose_name='اهداف یادگیری')
-    duration = models.DurationField(default=timedelta(), verbose_name='مدت زمان دوره')
-    price = models.IntegerField(blank=True, null=True, verbose_name='قیمت دوره')
-    master_note = models.CharField(max_length=200, null=True, blank=True, verbose_name="یادداشت مدرس")
+    class Language(models.TextChoices):
+        FA = 'FA', 'فارسی'
+        EN = 'EN', 'انگلیسی'
+
+    # ── Relations ──
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey('SubCategory', on_delete=models.CASCADE, related_name='categories_courses')
+    tags = models.ManyToManyField('Tag', blank=True, related_name='courses')
+
+    # ── Core fields ──
+    title = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True)
+    short_description = models.CharField(max_length=500, blank=True, null=True)
+    description = RichTextUploadingField()
+
+    # ── Content details ──
+    prerequisites = models.TextField(blank=True, null=True)
+    learning_outcomes = models.TextField(blank=True, null=True)
+    duration = models.DurationField(default=timedelta())
+
+    # ── Pricing & access ──
+    price = models.PositiveIntegerField(blank=True, null=True)
     payment_status = models.CharField(
-        choices=CoursePaymentStatusChoices.choices,
-        max_length=10,
-        default=CoursePaymentStatusChoices.PREMIUM,
-        verbose_name='وضعیت پرداخت دوره'
+        max_length=1,
+        choices=Payment.choices,
+        default=Payment.PREMIUM
     )
-    poster = models.ImageField(upload_to="Courses/posters/", blank=True, null=True, verbose_name='پوستر دوره')
-    banner = models.ImageField(upload_to="Courses/banners/", blank=True, null=True, verbose_name='بنر دوره')
-    trailer = models.FileField(upload_to="Courses/trailers/", blank=True, null=True, verbose_name='ویدیو معرفی')
-    language = models.CharField(
-        choices=LanguageChoices.choices,
-        max_length=10,
-        default=LanguageChoices.PERSIAN,
-        verbose_name='زبان دوره'
-    )
-    level_status = models.CharField(
-        choices=CourseLevelStatusChoices.choices,
-        max_length=30,
-        default=CourseLevelStatusChoices.INTRODUCTORY,
-        verbose_name='سطح دوره'
-    )
-    course_status = models.CharField(
-        choices=CourseStatusChoices.choices,
-        max_length=20,
-        default=CourseStatusChoices.STARTING_SOON,
-        verbose_name='وضعیت دوره'
-    )
-    status = models.CharField(
-        choices=PublishStatusChoices.choices,
-        max_length=10,
-        default=PublishStatusChoices.DRAFT,
-        verbose_name='وضعیت انتشار'
-    )
-    has_certificate = models.BooleanField(default=False, verbose_name='دارای گواهی پایان دوره؟')
-    enrollment_count = models.PositiveIntegerField(default=0, verbose_name='تعداد ثبت نام کنندگان')
-    average_rating = models.FloatField(default=0.0, verbose_name='میانگین امتیاز')
-    review_count = models.PositiveIntegerField(default=0, verbose_name='تعداد نظرات')
-    is_recommended = models.BooleanField(default=False, verbose_name='پیشنهادی؟')
-    views = models.IntegerField(default=0, verbose_name='بازدیدها')
-    published_date = models.DateTimeField(blank=True, null=True, verbose_name='تاریخ انتشار')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')
+
+    # ── Media ──
+    poster = models.ImageField(upload_to='courses/posters/', blank=True, null=True)
+    banner = models.ImageField(upload_to='courses/banners/', blank=True, null=True)
+    trailer = models.FileField(upload_to='courses/trailers/', blank=True, null=True)
+
+    # ── Metadata & statuses ──
+    language = models.CharField(max_length=2, choices=Language.choices, default=Language.FA)
+    level_status = models.CharField(max_length=2, choices=Level.choices, default=Level.INTRO)
+    course_status = models.CharField(max_length=1, choices=Status.choices, default=Status.STARTING_SOON)
+    status = models.CharField(max_length=2, choices=Publish.choices, default=Publish.DRAFT)
+    has_certificate = models.BooleanField(default=False)
+
+    # ── Engagement stats ──
+    enrollment_count = models.PositiveIntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
+    average_rating = models.FloatField(default=0.0)
+    review_count = models.PositiveIntegerField(default=0)
+    is_recommended = models.BooleanField(default=False)
+
+    # ── Timestamps ──
+    published_date = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'دوره'
-        verbose_name_plural = 'دوره‌ها'
-
-    def formatted_duration(self):
-        """
-        Formats duration into hours, minutes, and seconds.
-        """
-        total_seconds = int(self.duration.total_seconds())
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{hours:02}:{minutes:02}:{seconds:02}" if hours else f"{minutes:02}:{seconds:02}"
+        ordering = ['-published_date', '-created_at']
 
     def __str__(self):
         return self.title
+
+    def formatted_duration(self):
+        """
+        Return duration as "HH:MM:SS" (or "MM:SS" if under 1 hour).
+        """
+        total = int(self.duration.total_seconds())
+        hrs, rem = divmod(total, 3600)
+        mins, secs = divmod(rem, 60)
+        return f"{hrs:02}:{mins:02}:{secs:02}" if hrs else f"{mins:02}:{secs:02}"
+
 
 # -------------------- Course Content -------------------- #
 
