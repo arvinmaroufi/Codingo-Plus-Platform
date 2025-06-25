@@ -5,7 +5,6 @@ from .models import (
 )
 
 
-
 class MainCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MainCategory
@@ -112,13 +111,121 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+
+    tags = TagSerializer(many=True)
+
     class Meta:
         model = Course
         fields = '__all__'
-        read_only_fields = (
-            'created_at', 'updated_at', 'enrollment_count',
-            'average_rating', 'review_count', 'views', 'published_date'
+        read_only_fields = ('created_at', 'updated_at', 'enrollment_count', 'average_rating', 'review_count', 'views', 'teacher')
+
+
+    def create(self, validated_data):
+
+        request = self.context.get('request')
+        teacher = request.user
+
+        category_slug = validated_data.pop('category_slug', None)
+        if category_slug is not None:
+            try:
+                category = SubCategory.objects.get(slug=category_slug)
+            except SubCategory.DoesNotExist:
+                raise serializers.ValidationError({'category_slug': 'The category_slug is not founded.'})
+        else:
+            raise serializers.ValidationError({'category_slug': 'The category is needed.'})
+        
+        slug = validated_data.pop('slug', None)
+        if slug is None:
+            raise serializers.ValidationError({'slug': 'slug is needed.'})
+        
+        title = validated_data.pop('title', None)
+        if title is None:
+            raise serializers.ValidationError({'title': 'title is needed.'})
+        
+        level_status = validated_data.pop('level_status', None)
+        if level_status is None:
+            raise serializers.ValidationError({'level_status': 'level_status is needed.'})
+        
+        payment_status = validated_data.pop('payment_status', None)
+        if payment_status is None:
+            raise serializers.ValidationError({'payment_status': 'payment_status is needed.'})
+        
+        status = validated_data.pop('status', None)
+        if status is None:
+            raise serializers.ValidationError({'status': 'status is needed.'})
+        
+        language = validated_data.pop('language', None)
+        if language is None:
+            raise serializers.ValidationError({'language': 'language is needed.'})
+        
+
+        price = validated_data.pop('price', None)
+        
+        if payment_status == "P" and price is None:
+            raise serializers.ValidationError({'price': 'The price is required when you want to make the course premuim'})
+            
+        validated_data['is_recommended'] = False
+
+        query = Course.objects.create(
+            teacher=teacher,
+            category=category,
+            **validated_data
         )
+        
+        query.save()
+        
+        return query
+
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+
+        if request.user.is_staff:
+            instance.is_recommended = validated_data.get('is_recommended', instance.is_recommended)
+        
+        # Core fields
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.short_description = validated_data.get('short_description', instance.short_description)
+
+        # Contant details
+        instance.prerequisites = validated_data.get('prerequisites', instance.prerequisites)
+        instance.learning_outcomes = validated_data.get('learning_outcomes', instance.learning_outcomes)
+        instance.duration = validated_data.get('duration', instance.duration)
+
+        # Pricing
+        instance.price = validated_data.get('price', instance.price)
+        instance.payment_ststus = validated_data.get('payment_ststus', instance.payment_ststus)
+
+        # Media
+        instance.poster = validated_data.get('poster', instance.poster)
+        instance.banner = validated_data.get('banner', instance.banner)
+        instance.trailer = validated_data.get('trailer', instance.trailer)
+
+        # Metadata 
+        instance.status = validated_data.get('status', instance.status)
+        instance.level_status = validated_data.get('level_status', instance.level_status)
+        instance.course_status = validated_data.get('course_status', instance.course_status)
+        instance.has_certificate = validated_data.get('has_certificate', instance.has_certificate)
+
+        # Timestamps
+        instance.published_date = validated_data.get('published_date', instance.published_date)
+
+        category_slug = validated_data.pop('category_slug', None)
+        if category_slug is not None:
+            try:
+                category = SubCategory.objects.get(slug=category_slug)
+            except SubCategory.DoesNotExist:
+                raise serializers.ValidationError({'category_slug': 'The category_slug is not founded.'})
+
+        tags_data = validated_data.pop('tags', None)
+        if tags_data is not None:
+            instance.tags.set(tags_data)
+        
+        instance.save()
+        return instance
+    
 
 
 class CourseContentSerializer(serializers.ModelSerializer):
