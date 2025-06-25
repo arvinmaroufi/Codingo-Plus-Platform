@@ -28,10 +28,68 @@ class MainCategorySerializer(serializers.ModelSerializer):
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
+
+    main_category_slug = serializers.CharField(write_only=True, required=False)
+
+    parent = MainCategorySerializer(read_only=True)
+
     class Meta:
         model = SubCategory
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'parent')
+
+
+    def create(self, validated_data):
+        
+
+        slug = validated_data.pop('slug', None)
+        if slug is None:
+            raise serializers.ValidationError({'slug': 'slug is needed.'})
+        
+        title = validated_data.pop('title', None)
+        if title is None:
+            raise serializers.ValidationError({'title': 'title is needed.'})
+
+        main_category_slug = validated_data.pop('main_category_slug', None)
+        if main_category_slug is None:
+            raise serializers.ValidationError({'main_category_slug': 'The main_category_slug is needed.'})
+        
+        try:
+            main_category = MainCategory.objects.get(slug=main_category_slug)
+        except MainCategory.DoesNotExist:
+            raise serializers.ValidationError({'main_category_slug': 'The main category slug is not exists.'})
+
+        query = SubCategory.objects.create(
+            parent=main_category,
+            title=title,
+            slug=slug
+            **validated_data
+        )
+
+        query.save()
+
+        return query
+
+
+    def update(self, instance, validated_data):
+        main_category_slug = validated_data.pop('main_category_slug', None)
+
+        if main_category_slug:
+            try:
+                main_category = MainCategory.objects.get(slug=main_category_slug)
+                instance.parent = main_category
+            except MainCategory.DoesNotExist:
+                raise serializers.ValidationError({'main_category_slug': 'The main category slug is not exists.'})
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.icon = validated_data.get('icon', instance.icon)
+        instance.banner = validated_data.get('banner', instance.banner)
+        instance.description = validated_data.get('description', instance.description)
+
+        instance.save()
+
+        return instance
 
 
 class TagSerializer(serializers.ModelSerializer):
