@@ -38,4 +38,5 @@ class TicketSerializer(serializers.ModelSerializer):
     
         
     def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
         return Ticket.objects.create(**validated_data)
