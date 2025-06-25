@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Department, Ticket, TicketMessage
-from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer
+from .models import Department, Ticket, TicketMessage, TicketAttachment
+from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrUser
 
 
@@ -100,3 +100,30 @@ class TicketMessageViewSet(ViewSet):
         message.delete()
         return Response({'message': 'TicketMessage deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
     
+
+class TicketAttachmentViewSet(ViewSet):
+    permission_classes = [IsAdminOrUser]
+    lookup_field = 'pk'
+
+    def list(self, request):
+        queryset = TicketAttachment.objects.all()
+        serializer = TicketAttachmentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk):
+        attachment = get_object_or_404(TicketAttachment, pk=pk)
+        serializer = TicketAttachmentSerializer(attachment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        serializer = TicketAttachmentSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'TicketAttachment created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk):
+        attachment = get_object_or_404(TicketAttachment, pk=pk)
+        self.check_object_permissions(request, attachment)
+        attachment.delete()
+        return Response({'message': 'TicketAttachment deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
