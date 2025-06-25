@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Department
+from .models import Department, Ticket
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -22,3 +22,20 @@ class DepartmentSerializer(serializers.ModelSerializer):
         return instance
         
         
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = [
+            'subject',
+            'user',
+            'department',
+            'priority',
+            'status',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
+    
+        
+    def create(self, validated_data):
+        return Ticket.objects.create(**validated_data)

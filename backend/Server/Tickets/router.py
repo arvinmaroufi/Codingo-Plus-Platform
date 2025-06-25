@@ -27,3 +27,26 @@ class DepartmentRouter(routers.DefaultRouter):
         ]
         return custom_urls
     
+
+class TicketRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.TicketViewSet, basename='ticket')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.TicketViewSet.as_view({'get': 'list'})),
+                path('create/', views.TicketViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    # Basic detail route: GET, PUT, DELETE.
+                    path('', views.TicketViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                ])),
+            ])),
+        ]
+        return custom_urls
