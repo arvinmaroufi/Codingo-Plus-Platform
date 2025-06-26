@@ -148,7 +148,7 @@ class CourseTicketMessageRouter(routers.DefaultRouter):
 
     def __init__(self):
         super().__init__()
-        self.register(r'', views.CourseTicketMessageViewSet, basename='ticket')
+        self.register(r'', views.CourseTicketMessageViewSet, basename='ticketmessage')
 
     def get_urls(self):
         custom_urls = [
@@ -158,6 +158,27 @@ class CourseTicketMessageRouter(routers.DefaultRouter):
                 path('<int:pk>/', include([
                     # Basic detail route: GET, PUT, DELETE.
                     path('', views.CourseTicketMessageViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                ])),
+            ])),
+        ]
+        return custom_urls
+    
+class CourseTicketAttachmentRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseTicketAttachmentViewSet, basename='ticketattachment')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CourseTicketAttachmentViewSet.as_view({'get': 'list'})),
+                path('create/', views.CourseTicketAttachmentViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    path('', views.CourseTicketAttachmentViewSet.as_view({
                         'get': 'retrieve',
                         'put': 'update',
                         'delete': 'destroy'
