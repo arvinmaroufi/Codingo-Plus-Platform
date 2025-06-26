@@ -229,10 +229,46 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class CourseContentSerializer(serializers.ModelSerializer):
+
+    course = serializers.SlugRelatedField(read_only=True, slug_field='slug')
+
+
     class Meta:
         model = CourseContent
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'course')
+
+    
+    def create(self, validated_data):
+
+        course_slug = validated_data.pop('course_slug', None)
+        if course_slug is not None:
+            try:
+                course = Course.objects.get(slug=course_slug)
+            except Course.DoesNotExist:
+                raise serializers.ValidationError({'course_slug': 'The course_slug is not founded.'})
+        else:
+            raise serializers.ValidationError({'course_slug': 'The course is needed.'})
+        
+        
+        query = CourseFaq.objects.create(course=course, **validated_data)
+
+        query.save()
+
+        return query
+    
+
+    def update(self, instance, validated_data):
+        instance.order = validated_data.get('order', instance.order)
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.image = validated_data.get('image', instance.image)
+        instance.video = validated_data.get('video', instance.video)
+        instance.attachments = validated_data.get('attachments', instance.attachments)
+
+        instance.save()
+
+        return instance
 
 
 class CourseFaqSerializer(serializers.ModelSerializer):
