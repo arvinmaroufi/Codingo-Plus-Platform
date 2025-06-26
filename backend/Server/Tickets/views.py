@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment, CourseTicket, CourseTicketMessage
-from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer, CourseDepartmentSerializer, CourseTicketSerializer, CourseTicketMessageSerializer
+from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment, CourseTicket, CourseTicketMessage, CourseTicketAttachment
+from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer, CourseDepartmentSerializer, CourseTicketSerializer, CourseTicketMessageSerializer, CourseTicketAttachmentSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrUser
 
 
@@ -235,3 +235,32 @@ class CourseTicketMessageViewSet(ViewSet):
         self.check_object_permissions(request, message)
         message.delete()
         return Response({'message': 'CourseTicketMessage deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class CourseTicketAttachmentViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrUser]
+    lookup_field = 'pk'
+
+    def list(self, request):
+        queryset = CourseTicketAttachment.objects.all()
+        serializer = CourseTicketAttachmentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk):
+        attachment = get_object_or_404(CourseTicketAttachment, pk=pk)
+        serializer = CourseTicketAttachmentSerializer(attachment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        serializer = CourseTicketAttachmentSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'CourseTicketAttachment created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk):
+        attachment = get_object_or_404(CourseTicketAttachment, pk=pk)
+        self.check_object_permissions(request, attachment)
+        attachment.delete()
+        return Response({'message': 'CourseTicketAttachment deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
