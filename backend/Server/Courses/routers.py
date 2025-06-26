@@ -110,3 +110,26 @@ class CourseFaqRouter(routers.DefaultRouter):
         ]
         return custom_urls
     
+
+
+class CourseContentRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseContentViewSet, basename='course-contents')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CourseContentViewSet.as_view({'get': 'list'})),
+
+                path('course-contents/<slug:slug>/', views.CourseContentViewSet.as_view({'get': 'course_contents'})),
+
+                path('create/', views.CourseContentViewSet.as_view({'post': 'create'})),
+                path('detail/<int:pk>/', views.CourseContentViewSet.as_view({'get': 'retrieve'})),
+                path('update/<int:pk>/', views.CourseContentViewSet.as_view({'put': 'update'})),
+                path('delete/<int:pk>/', views.CourseContentViewSet.as_view({'delete': 'destroy'})),
+            ])),
+        ]
+        return custom_urls
+    
