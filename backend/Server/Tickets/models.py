@@ -158,3 +158,14 @@ class CourseTicketMessage(models.Model):
         ordering = ["created_at"]
 
 
+class CourseTicketAttachment(models.Model):
+    message = models.ForeignKey(CourseTicketMessage, on_delete=models.CASCADE, related_name="course_attachments", verbose_name="پیام تیکت دوره")
+    file = models.FileField(upload_to="Tickets/course_ticket_attachments/", verbose_name="فایل")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")
+
+    def str(self):
+        return f"پیوست برای پیام تیکت دوره #{self.message.id}"
+    
+    class Meta:
+        verbose_name = "پیوست تیکت دوره"
+        verbose_name_plural = "پیوست‌ های تیکت دوره"
