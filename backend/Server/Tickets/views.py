@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment
-from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer, CourseDepartmentSerializer
+from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment, CourseTicket
+from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer, CourseDepartmentSerializer, CourseTicketSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrUser
 
 
@@ -160,3 +160,40 @@ class CourseDepartmentViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The CourseDepartment is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class CourseTicketViewSet(ViewSet):
+    permission_classes = [IsAdminOrUser]
+    lookup_field = 'pk'
+
+    def list(self, request):
+        queryset = CourseTicket.objects.all()
+        serializer = CourseTicketSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk):
+        ticket = get_object_or_404(CourseTicket, pk=pk)
+        serializer = CourseTicketSerializer(ticket)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        serializer = CourseTicketSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'CourseTicket created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        ticket = get_object_or_404(CourseTicket, pk=pk)
+        self.check_object_permissions(request, ticket)
+        serializer = CourseTicketSerializer(ticket, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'CourseTicket updated successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk):
+        ticket = get_object_or_404(CourseTicket, pk=pk)
+        self.check_object_permissions(request, ticket)
+        ticket.delete()
+        return Response({'message': 'CourseTicket deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
