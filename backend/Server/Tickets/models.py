@@ -137,3 +137,24 @@ class CourseTicket(models.Model):
         verbose_name_plural = "تیکت‌ های دوره"
         ordering = ["-created_at"]
         
+
+class CourseTicketMessage(models.Model):
+    ticket = models.ForeignKey(CourseTicket, on_delete=models.CASCADE, related_name="course_messages", verbose_name="تیکت دوره")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    message = models.TextField(verbose_name="پیام")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            self.user = self.ticket.user
+        super().save(*args, **kwargs)
+
+    def str(self):
+        return f"پیام برای تیکت دوره #{self.ticket.id}"
+
+    class Meta:
+        verbose_name = "پیام تیکت دوره"
+        verbose_name_plural = "پیام‌ های تیکت دوره"
+        ordering = ["created_at"]
+
+
