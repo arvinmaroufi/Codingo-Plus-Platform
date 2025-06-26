@@ -18,3 +18,34 @@ class IsAdminOrReadOnly(BasePermission):
             return True
 
         return request.user.is_staff
+    
+
+class CoursePermission(BasePermission):
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        
+        if request.method == "POST":
+            if request.user.type == "TE":
+                return True
+            return False
+        
+        return False
+    
+        
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        
+        if request.method == "DELETE":
+            if request.user.is_staff:
+                return True
+            return False
+        
+        if request.method == "PUT":
+            if request.user.is_staff or request.user == obj.teacher:
+                return True
+            return False
+        
+        return False
