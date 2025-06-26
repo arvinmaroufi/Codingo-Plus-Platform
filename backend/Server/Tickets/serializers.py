@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment
+from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment, CourseTicket
+from Courses.serializers import CourseSerializer
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -90,3 +91,28 @@ class CourseDepartmentSerializer(serializers.ModelSerializer):
         
         return instance
         
+
+class CourseTicketSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(read_only=True)
+    department = CourseDepartmentSerializer(read_only=True)
+    
+    class Meta:
+        model = CourseTicket
+        fields = [
+            'id',
+            'subject',
+            'user',
+            'course',
+            'department',
+            'priority',
+            'status',
+            'created_at',
+            'updated_at',
+            'closed_at',
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at', 'closed_at']
+    
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return CourseTicket.objects.create(**validated_data)
+    
