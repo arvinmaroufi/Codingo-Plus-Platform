@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Department, Ticket, TicketMessage, TicketAttachment
-from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer
+from .models import Department, Ticket, TicketMessage, TicketAttachment, CourseDepartment
+from .serializers import DepartmentSerializer, TicketSerializer, TicketMessageSerializer, TicketAttachmentSerializer, CourseDepartmentSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrUser
 
 
@@ -127,3 +127,36 @@ class TicketAttachmentViewSet(ViewSet):
         self.check_object_permissions(request, attachment)
         attachment.delete()
         return Response({'message': 'TicketAttachment deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    
+    
+class CourseDepartmentViewSet(ViewSet):
+
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def list(self):
+        queryset = CourseDepartment.objects.all()
+        serializer = CourseDepartmentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def create(self, request):
+        serializer = CourseDepartmentSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The CourseDepartment is added.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    def update(self, request, slug):
+        instance = get_object_or_404(CourseDepartment, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        serializer = CourseDepartmentSerializer(instance, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The CourseDepartment is updated.'}, status=status.HTTP_205_RESET_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, slug):
+        instance = get_object_or_404(CourseDepartment, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'The CourseDepartment is deleted.'}, status=status.HTTP_204_NO_CONTENT)
