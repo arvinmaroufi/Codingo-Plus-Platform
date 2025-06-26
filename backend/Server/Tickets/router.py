@@ -94,3 +94,27 @@ class TicketAttachmentRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+
+
+class CourseDepartmentRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseDepartmentViewSet, basename='ticket')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CourseDepartmentViewSet.as_view({'get': 'list'})),
+                path('create/', views.CourseDepartmentViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    # Basic detail route: GET, PUT, DELETE.
+                    path('', views.CourseDepartmentViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                ])),
+            ])),
+        ]
+        return custom_urls
