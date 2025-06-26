@@ -1,5 +1,6 @@
 from django.db import models
 from Users.models import User
+from Courses.models import Course
 
 
 class Department(models.Model):
@@ -91,4 +92,16 @@ class TicketAttachment(models.Model):
         """Meta options for the TicketAttachment model."""
         verbose_name = "پیوست تیکت"
         verbose_name_plural = "پیوست‌ های تیکت"
+        
+
+class CourseDepartment(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="نام دپارتمان دوره")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "دپارتمان دوره"
+        verbose_name_plural = "دپارتمان‌ های دوره"
         
