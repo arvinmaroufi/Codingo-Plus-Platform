@@ -49,3 +49,31 @@ class CoursePermission(BasePermission):
             return False
         
         return False
+    
+
+
+class IsCourseTeacherOrAdmin(BasePermission):
+
+        
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        
+        if request.method == "POST":
+            if request.user.is_staff or request.user.type == "TE":
+                return True
+            return False
+        
+        return False
+        
+    
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        
+        if request.method == "PUT" or "DELETE":
+            if request.user.is_staff or request.user == obj.course.teacher:
+                return True
+            return False
+        
+        return False
