@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.views import APIView, Response
 
-from .models import MainCategory, SubCategory, Tag
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer
-from .permissions import IsAdminOrReadOnly
+from .models import MainCategory, SubCategory, Tag, Course
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer
+from .permissions import IsAdminOrReadOnly, CoursePermission
 
 
 
@@ -139,3 +139,57 @@ class TagViewSet(viewsets.ViewSet):
             return Response({'massage': 'The main category is deleted.'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'error': 'You dont have any fucking permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+
+class CourseViewSet(viewsets.ViewSet):
+
+    lookup_field = 'slug'
+    permission_classes = [CoursePermission]
+
+    def list(self, request):
+        queryset = Course.objects.all()
+        serializer = CourseSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def retreive(self, request, slug):
+        instance = get_object_or_404(Course, slug=slug)
+        serilizer = CourseSerializer(instance)
+        return Response(serilizer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        if request.user.is_authenticated:
+            serializer = CourseSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The main category is created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, slug):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(Course, slug=slug)
+            serializer = CourseSerializer(instance, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                self.check_object_permissions(request=request, obj=instance)
+                serializer.save()
+                return Response({'massage': 'The main category is updated.'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, slug):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(Course, slug=slug)
+            if request.user == instance.author or request.user.is_staff:
+                self.check_object_permissions(request=request, obj=instance)
+                instance.delete()
+                return Response({'massage': 'The main category is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'error': 'You dont have any fucking permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)    
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        
