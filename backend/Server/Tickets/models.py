@@ -105,3 +105,35 @@ class CourseDepartment(models.Model):
         verbose_name = "دپارتمان دوره"
         verbose_name_plural = "دپارتمان‌ های دوره"
         
+
+class CourseTicket(models.Model):
+    class TicketPriorityChoices(models.TextChoices):
+        LOW = "LW", "کم"
+        MEDIUM = "ME", "متوسط"
+        HIGH = "HG", "بالا"
+        URGENT = "UR", "اضطراری"
+        
+    class TicketStatusChoices(models.TextChoices):
+        NEW = "NW", "جدید"
+        ANSWERED = "AD", "پاسخ داده شده"
+        IN_PROGRESS = "IN", "درحال بررسی"
+        CLOSED = "CL", "بسته شده"
+    
+    subject = models.CharField(max_length=200, verbose_name="موضوع")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="course_tickets", verbose_name="کاربر")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_tickets', verbose_name='دوره مرتبط')
+    department = models.ForeignKey(CourseDepartment, on_delete=models.CASCADE, verbose_name="دپارتمان دوره")
+    priority = models.CharField(choices=TicketPriorityChoices.choices, max_length=10, default=TicketPriorityChoices.LOW, verbose_name="اولویت")
+    status = models.CharField(choices=TicketStatusChoices.choices, max_length=10, default=TicketStatusChoices.NEW, verbose_name="وضعیت")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    closed_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ بسته شدن")
+
+    def str(self):
+        return f"{self.subject} - {self.course.title}"
+
+    class Meta:
+        verbose_name = "تیکت دوره"
+        verbose_name_plural = "تیکت‌ های دوره"
+        ordering = ["-created_at"]
+        
