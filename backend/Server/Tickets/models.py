@@ -1,5 +1,6 @@
 from django.db import models
 from Users.models import User
+from Courses.models import Course
 
 
 class Department(models.Model):
@@ -92,3 +93,79 @@ class TicketAttachment(models.Model):
         verbose_name = "پیوست تیکت"
         verbose_name_plural = "پیوست‌ های تیکت"
         
+
+class CourseDepartment(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="نام دپارتمان دوره")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "دپارتمان دوره"
+        verbose_name_plural = "دپارتمان‌ های دوره"
+        
+
+class CourseTicket(models.Model):
+    class TicketPriorityChoices(models.TextChoices):
+        LOW = "LW", "کم"
+        MEDIUM = "ME", "متوسط"
+        HIGH = "HG", "بالا"
+        URGENT = "UR", "اضطراری"
+        
+    class TicketStatusChoices(models.TextChoices):
+        NEW = "NW", "جدید"
+        ANSWERED = "AD", "پاسخ داده شده"
+        IN_PROGRESS = "IN", "درحال بررسی"
+        CLOSED = "CL", "بسته شده"
+    
+    subject = models.CharField(max_length=200, verbose_name="موضوع")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="course_tickets", verbose_name="کاربر")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_tickets', verbose_name='دوره مرتبط')
+    department = models.ForeignKey(CourseDepartment, on_delete=models.CASCADE, verbose_name="دپارتمان دوره")
+    priority = models.CharField(choices=TicketPriorityChoices.choices, max_length=10, default=TicketPriorityChoices.LOW, verbose_name="اولویت")
+    status = models.CharField(choices=TicketStatusChoices.choices, max_length=10, default=TicketStatusChoices.NEW, verbose_name="وضعیت")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    closed_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ بسته شدن")
+
+    def str(self):
+        return f"{self.subject} - {self.course.title}"
+
+    class Meta:
+        verbose_name = "تیکت دوره"
+        verbose_name_plural = "تیکت‌ های دوره"
+        ordering = ["-created_at"]
+        
+
+class CourseTicketMessage(models.Model):
+    ticket = models.ForeignKey(CourseTicket, on_delete=models.CASCADE, related_name="course_messages", verbose_name="تیکت دوره")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    message = models.TextField(verbose_name="پیام")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+
+    def save(self, *args, **kwargs):
+        if not self.user_id:
+            self.user = self.ticket.user
+        super().save(*args, **kwargs)
+
+    def str(self):
+        return f"پیام برای تیکت دوره #{self.ticket.id}"
+
+    class Meta:
+        verbose_name = "پیام تیکت دوره"
+        verbose_name_plural = "پیام‌ های تیکت دوره"
+        ordering = ["created_at"]
+
+
+class CourseTicketAttachment(models.Model):
+    message = models.ForeignKey(CourseTicketMessage, on_delete=models.CASCADE, related_name="course_attachments", verbose_name="پیام تیکت دوره")
+    file = models.FileField(upload_to="Tickets/course_ticket_attachments/", verbose_name="فایل")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")
+
+    def str(self):
+        return f"پیوست برای پیام تیکت دوره #{self.message.id}"
+    
+    class Meta:
+        verbose_name = "پیوست تیکت دوره"
+        verbose_name_plural = "پیوست‌ های تیکت دوره"
