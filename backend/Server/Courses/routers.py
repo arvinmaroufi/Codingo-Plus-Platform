@@ -66,3 +66,24 @@ class TagRouter(routers.DefaultRouter):
         ]
         return custom_urls
     
+
+
+class CourseRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseViewSet, basename='courses')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CourseViewSet.as_view({'get': 'list', 'post': 'create'})),
+
+                path('<slug:slug>/', include([
+                    # Basic detail route: GET, PUT, DELETE.
+                    path('', views.CourseViewSet.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update'})),
+                ])),
+            ])),
+        ]
+        return custom_urls
+    
