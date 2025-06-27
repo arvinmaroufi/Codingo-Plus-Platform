@@ -179,3 +179,26 @@ class CourseSessionRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+
+
+
+class CommentsRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CommentViewSet, basename='course-comments')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CommentViewSet.as_view({'get': 'list'})),
+
+                path('course-comments/<slug:slug>/', views.CommentViewSet.as_view({'get': 'course_comments'})),
+
+                path('create/', views.CommentViewSet.as_view({'post': 'create'})),
+                path('detail/<int:pk>/', views.CommentViewSet.as_view({'get': 'retrieve'})),
+                path('update/<int:pk>/', views.CommentViewSet.as_view({'put': 'update'})),
+                path('delete/<int:pk>/', views.CommentViewSet.as_view({'delete': 'destroy'})),
+            ])),
+        ]
+        return custom_urls
