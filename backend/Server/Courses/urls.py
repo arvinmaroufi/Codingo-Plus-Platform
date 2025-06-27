@@ -15,6 +15,7 @@ course_contents_router = routers.CourseContentRouter()
 course_chapters_router = routers.CourseChapterRouter()
 course_sessions_router = routers.CourseSessionRouter()
 comments_router = routers.CommentsRouter()
+comment_replays_router = routers.CommentsReplayRouter()
 
 
 urlpatterns = [
@@ -27,4 +28,5 @@ urlpatterns = [
     path('course-sessions/', include(course_sessions_router.get_urls())),
     path('course-chapters/', include(course_chapters_router.get_urls())),
     path('comments/', include(comments_router.get_urls())),
+    path('comment-replays/', include(comment_replays_router.get_urls())),
 ]
