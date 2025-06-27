@@ -322,10 +322,40 @@ class CourseFaqSerializer(serializers.ModelSerializer):
 
 
 class CourseChapterSerializer(serializers.ModelSerializer):
+
+    course_slug = serializers.CharField(write_only=True, required=False)
     class Meta:
         model = CourseChapter
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'course', 'duration')
+
+    
+    def create(self, validated_data):
+        
+        course_slug = validated_data.pop('course_slug', None)
+        if course_slug is not None:
+            try:
+                course = Course.objects.get(slug=course_slug)
+            except Course.DoesNotExist:
+                raise serializers.ValidationError({'course_slug': 'The course_slug is not founded.'})
+        else:
+            raise serializers.ValidationError({'course_slug': 'The course is needed.'})
+        
+        query = CourseChapter.objects.create(course=course, **validated_data)
+
+        query.save()
+
+        return query
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.order = validated_data.get('order', instance.order)
+
+        instance.save()
+
+        return instance
+        
 
 
 class CourseSessionSerializer(serializers.ModelSerializer):
