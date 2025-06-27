@@ -476,7 +476,48 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentReplySerializer(serializers.ModelSerializer):
+
+
+    comment_id = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = CommentReply
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'user', 'comment')
+
+
+    def create(self, validated_data):
+
+        request = self.context.get('request')
+        
+        comment_id = validated_data.pop('comment_id', None)
+        if comment_id is not None:
+            try:
+                course = Course.objects.get(slug=comment_id)
+            except Course.DoesNotExist:
+                raise serializers.ValidationError({'comment_id': 'The comment_id is not founded.'})
+        else:
+            raise serializers.ValidationError({'comment_id': 'The comment is needed.'})
+
+        content = validated_data.pop('content', None)
+        if content is None:
+            raise serializers.ValidationError({'content': 'content is needed.'})
+        
+        query = Comment.objects.create(
+            user=request.user,
+            course=course,
+            content=content
+        )
+
+        query.save()
+
+        return query
+    
+
+    def update(self, instance, validated_data):
+
+        instance.content = validated_data.get('content', instance.content)
+
+        instance.save()
+
+        return instance
