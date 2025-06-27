@@ -359,10 +359,66 @@ class CourseChapterSerializer(serializers.ModelSerializer):
 
 
 class CourseSessionSerializer(serializers.ModelSerializer):
+
+    chapter_id = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = CourseSession
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'chapter')
+
+
+    def create(self, validated_data):
+        
+        chapter_id = validated_data.pop('chapter_id', None)
+        if chapter_id is not None:
+            try:
+                chapter = CourseChapter.objects.get(id=chapter_id)
+            except CourseChapter.DoesNotExist:
+                raise serializers.ValidationError({'chapter_id': 'The chapter is not founded.'})
+        else:
+            raise serializers.ValidationError({'chapter_id': 'The chapter_id is needed.'})
+        
+        duration = validated_data.pop('duration', None)
+        if duration is None:
+            raise serializers.ValidationError({'duration': 'duration is needed.'})
+        
+        video = validated_data.pop('video', None)
+        if video is None:
+            raise serializers.ValidationError({'video': 'video is needed.'})
+        
+        is_paid = validated_data.pop('is_paid', None)
+        if is_paid is None:
+            raise serializers.ValidationError({'is_paid': 'is_paid is needed.'})
+        
+        query = CourseChapter.objects.create(
+            chapter=chapter
+        )
+
+        query.save()
+
+        return query
+    
+    
+    def update(self, instance, validated_data):
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.order = validated_data.get('order', instance.order)
+        instance.duration = validated_data.get('duration', instance.duration)
+        instance.description = validated_data.get('description', instance.description)
+
+        instance.video = validated_data.get('video', instance.video)
+        instance.file_link = validated_data.get('file_link', instance.file_link)
+        instance.resources = validated_data.get('resources', instance.resources)
+
+        instance.is_paid = validated_data.get('is_paid', instance.is_paid)
+        instance.is_preview = validated_data.get('is_preview', instance.is_preview)
+
+        instance.save()
+
+        return instance
+    
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
