@@ -3,9 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.views import APIView, Response
 
-from .models import MainCategory, SubCategory, Tag, Course, CourseFaq, CourseContent, CourseChapter, CourseSession
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer, CourseFaqSerializer, CourseContentSerializer, CourseChapterSerializer, CourseSessionSerializer
-from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin, CourseSessionsPermission
+from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin, CourseSessionsPermission, CommentsPermission
+from .serializers import *
 
 
 
@@ -368,17 +367,17 @@ class CourseSessionViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = CourseSession.objects.all()
-        serializer = CourseSession(queryset, many=True)
+        serializer = CourseSessionSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def retreive(self, request, pk):
         instance = get_object_or_404(CourseSession, id=pk)
-        serilizer = CourseSession(instance)
+        serilizer = CourseSessionSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
         if request.user.is_authenticated:
-            serializer = CourseSession(data=request.data, context={'request': request})
+            serializer = CourseSessionSerializer(data=request.data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response({'massage': 'The session is created.'}, status=status.HTTP_201_CREATED)
@@ -391,7 +390,7 @@ class CourseSessionViewSet(viewsets.ViewSet):
         if request.user.is_authenticated:
             instance = get_object_or_404(CourseSession, id=pk)
             self.check_object_permissions(request=request, obj=instance)
-            serializer = CourseSession(instance, data=request.data, context={'request': request}, partial=True)
+            serializer = CourseSessionSerializer(instance, data=request.data, context={'request': request}, partial=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response({'massage': 'The session is updated.'}, status=status.HTTP_200_OK)
@@ -412,11 +411,67 @@ class CourseSessionViewSet(viewsets.ViewSet):
     def course_chapter_sessions(self, request, pk):
         instance = get_object_or_404(CourseChapter, id=pk)
         queryset = CourseSession.objects.filter(chapter=instance)
-        serializer = CourseSession(queryset, many=True)
+        serializer = CourseSessionSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def course_sessions(self, request, pk):
         instance = get_object_or_404(Course, id=pk)
         queryset = CourseSession.objects.filter(chapter__course=instance)
+        serializer = CourseSessionSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class CommentViewSet(viewsets.ViewSet):
+
+    lookup_field = 'pk'
+    permission_classes = [CommentsPermission]
+
+    def list(self, request):
+        queryset = Comment.objects.all()
         serializer = CourseSession(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def retreive(self, request, pk):
+        instance = get_object_or_404(Comment, id=pk)
+        serilizer = CommentSerializer(instance)
+        return Response(serilizer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        if request.user.is_authenticated:
+            serializer = CommentSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The comment is created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(Comment, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            serializer = CommentSerializer(instance, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The comment is updated.'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(Comment, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            instance.delete()
+            return Response({'massage': 'The comment is deleted.'}, status=status.HTTP_204_NO_CONTENT) 
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def course_comments(self, request, slug):
+        instance = get_object_or_404(Course, slug=slug)
+        queryset = Comment.objects.filter(course=instance)
+        serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
