@@ -104,3 +104,29 @@ class CourseSessionsPermission(BasePermission):
             return True
         
         return False
+    
+
+
+class CommentsPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        if request.mothed in SAFE_METHODS:
+            return True
+        
+        if request.method == 'POST':
+
+            if request.user.is_authenticated:
+                return True
+            
+            return False
+        
+    
+    def has_object_permission(self, request, view, obj):
+
+        if request.mtehod in SAFE_METHODS:
+            return True
+        
+        if request.user.is_staff or request.user == obj.user:
+            return True
+        
+        return False
