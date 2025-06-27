@@ -156,3 +156,26 @@ class CourseChapterRouter(routers.DefaultRouter):
         ]
         return custom_urls
     
+
+
+class CourseSessionRouter(routers.DefaultRouter):
+
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseSessionViewSet, basename='course-sessions')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CourseSessionViewSet.as_view({'get': 'list'})),
+
+                path('course-sessions/<slug:slug>/', views.CourseSessionViewSet.as_view({'get': 'course_sessions'})),
+                path('course-chapter-sessions/<slug:slug>/', views.CourseSessionViewSet.as_view({'get': 'course_chapter_sessions'})),
+
+                path('create/', views.CourseSessionViewSet.as_view({'post': 'create'})),
+                path('detail/<int:pk>/', views.CourseSessionViewSet.as_view({'get': 'retrieve'})),
+                path('update/<int:pk>/', views.CourseSessionViewSet.as_view({'put': 'update'})),
+                path('delete/<int:pk>/', views.CourseSessionViewSet.as_view({'delete': 'destroy'})),
+            ])),
+        ]
+        return custom_urls
