@@ -422,10 +422,57 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+
+    course_slug = serializers.CharField(write_only=True, required=False)
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'likes', 'popular_comment')
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'course')
+
+    
+    def create(self, validated_data):
+
+        request = self.context.get('request')
+        
+        course_slug = validated_data.pop('course_slug', None)
+        if course_slug is not None:
+            try:
+                course = Course.objects.get(slug=course_slug)
+            except Course.DoesNotExist:
+                raise serializers.ValidationError({'course_slug': 'The course_slug is not founded.'})
+        else:
+            raise serializers.ValidationError({'course_slug': 'The course is needed.'})
+
+        content = validated_data.pop('content', None)
+        if content is None:
+            raise serializers.ValidationError({'content': 'content is needed.'})
+        
+        query = Comment.objects.create(
+            user=request.user,
+            course=course,
+            content=content
+        )
+
+        query.save()
+
+        return query
+    
+
+    def update(self, instance, validated_data):
+
+        request = self.context.get('request')
+
+        if request.user.is_staff:
+            instance.is_active = validated_data.get('is_active', instance.is_active)
+            instance.popular_comment = validated_data.get('popular_comment', instance.popular_comment)
+
+        instance.content = validated_data.get('content', instance.content)
+
+        instance.save()
+
+        return instance
+    
+
 
 
 class CommentReplySerializer(serializers.ModelSerializer):
