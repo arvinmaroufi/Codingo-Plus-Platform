@@ -12,6 +12,7 @@ tags_router = routers.SubCategoryRouter()
 course_router = routers.CourseRouter()
 course_faqs_router = routers.CourseFaqRouter()
 course_contents_router = routers.CourseContentRouter()
+course_chapters = routers.CourseChapterRouter()
 
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path('courses/', include(course_router.get_urls())),
     path('course-faqs/', include(course_faqs_router.get_urls())),
     path('course-contents/', include(course_contents_router.get_urls())),
+    path('course-chapters/', include(course_chapters.get_urls())),
 ]
