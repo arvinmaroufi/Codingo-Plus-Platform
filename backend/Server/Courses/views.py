@@ -429,7 +429,7 @@ class CommentViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Comment.objects.all()
-        serializer = CourseSession(queryset, many=True)
+        serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def retreive(self, request, pk):
@@ -474,4 +474,61 @@ class CommentViewSet(viewsets.ViewSet):
         instance = get_object_or_404(Course, slug=slug)
         queryset = Comment.objects.filter(course=instance)
         serializer = CommentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+class CommentReplayViewSet(viewsets.ViewSet):
+
+    lookup_field = 'pk'
+    permission_classes = [CommentsPermission]
+
+    def list(self, request):
+        queryset = CommentReply.objects.all()
+        serializer = CommentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def retreive(self, request, pk):
+        instance = get_object_or_404(CommentReply, id=pk)
+        serilizer = CommentReplySerializer(instance)
+        return Response(serilizer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        if request.user.is_authenticated:
+            serializer = CommentReplySerializer(data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The replay is created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CommentReply, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            serializer = CommentReplySerializer(instance, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The replay is updated.'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CommentReply, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            instance.delete()
+            return Response({'massage': 'The replay is deleted.'}, status=status.HTTP_204_NO_CONTENT) 
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def comment_replays(self, request, pk):
+        instance = get_object_or_404(Comment, id=pk)
+        queryset = CommentReply.objects.filter(comment=instance)
+        serializer = CommentReplySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
