@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.views import APIView, Response
 
-from .models import MainCategory, SubCategory, Tag, Course, CourseFaq, CourseContent, CourseChapter
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer, CourseFaqSerializer, CourseContentSerializer, CourseChapterSerializer
-from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin
+from .models import MainCategory, SubCategory, Tag, Course, CourseFaq, CourseContent, CourseChapter, CourseSession
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer, CourseFaqSerializer, CourseContentSerializer, CourseChapterSerializer, CourseSessionSerializer
+from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin, CourseSessionsPermission
 
 
 
@@ -300,7 +300,7 @@ class CourseFaqViewSet(viewsets.ViewSet):
         
     def course_faqs(self, request, slug):
         instance = get_object_or_404(Course, slug)
-        queryset = CourseFaq.obje.filter(course=instance)
+        queryset = CourseFaq.objects.filter(course=instance)
         serializer = CourseFaqSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -356,6 +356,67 @@ class CourseChapterViewSet(viewsets.ViewSet):
         
     def course_chapters(self, request, slug):
         instance = get_object_or_404(Course, slug)
-        queryset = CourseChapter.obje.filter(course=instance)
+        queryset = CourseChapter.objects.filter(course=instance)
         serializer = CourseChapterSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CourseSessionViewSet(viewsets.ViewSet):
+
+    lookup_field = 'pk'
+    permission_classes = [CourseSessionsPermission]
+
+    def list(self, request):
+        queryset = CourseSession.objects.all()
+        serializer = CourseSession(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def retreive(self, request, pk):
+        instance = get_object_or_404(CourseSession, id=pk)
+        serilizer = CourseSession(instance)
+        return Response(serilizer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        if request.user.is_authenticated:
+            serializer = CourseSession(data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The session is created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CourseSession, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            serializer = CourseSession(instance, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The session is updated.'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CourseSession, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            instance.delete()
+            return Response({'massage': 'The session is deleted.'}, status=status.HTTP_204_NO_CONTENT) 
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    def course_chapter_sessions(self, request, pk):
+        instance = get_object_or_404(CourseChapter, id=pk)
+        queryset = CourseSession.objects.filter(chapter=instance)
+        serializer = CourseSession(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def course_sessions(self, request, pk):
+        instance = get_object_or_404(Course, id=pk)
+        queryset = CourseSession.objects.filter(chapter__course=instance)
+        serializer = CourseSession(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
