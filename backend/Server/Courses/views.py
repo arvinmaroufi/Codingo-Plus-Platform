@@ -3,10 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.views import APIView, Response
 
-from .models import MainCategory, SubCategory, Tag, Course, CourseFaq, CourseContent
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer, CourseFaqSerializer, CourseContentSerializer
+from .models import MainCategory, SubCategory, Tag, Course, CourseFaq, CourseContent, CourseChapter
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, CourseSerializer, CourseFaqSerializer, CourseContentSerializer, CourseChapterSerializer
 from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin
-
 
 
 
@@ -194,7 +193,6 @@ class CourseViewSet(viewsets.ViewSet):
             return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
         
 
-
         
 class CourseContentViewSet(viewsets.ViewSet):
 
@@ -251,6 +249,7 @@ class CourseContentViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
+
 class CourseFaqViewSet(viewsets.ViewSet):
 
     lookup_field = 'pk'
@@ -305,4 +304,58 @@ class CourseFaqViewSet(viewsets.ViewSet):
         serializer = CourseFaqSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+
+class CourseChapterViewSet(viewsets.ViewSet):
+
+    lookup_field = 'pk'
+    permission_classes = [IsCourseTeacherOrAdmin]
+
+    def list(self, request):
+        queryset = CourseChapter.objects.all()
+        serializer = CourseChapterSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def retreive(self, request, pk):
+        instance = get_object_or_404(CourseChapter, id=pk)
+        serilizer = CourseChapterSerializer(instance)
+        return Response(serilizer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        if request.user.is_authenticated:
+            serializer = CourseChapterSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The chapter is created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CourseChapter, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            serializer = CourseChapterSerializer(instance, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({'massage': 'The chapter is updated.'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, pk):
+        if request.user.is_authenticated:
+            instance = get_object_or_404(CourseChapter, id=pk)
+            self.check_object_permissions(request=request, obj=instance)
+            instance.delete()
+            return Response({'massage': 'The chapter is deleted.'}, status=status.HTTP_204_NO_CONTENT) 
+        else:
+            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    def course_chapters(self, request, slug):
+        instance = get_object_or_404(Course, slug)
+        queryset = CourseChapter.obje.filter(course=instance)
+        serializer = CourseChapterSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
