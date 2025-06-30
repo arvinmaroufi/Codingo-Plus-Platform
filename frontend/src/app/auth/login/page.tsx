@@ -24,7 +24,15 @@ export default function LoginPage() {
 
     return (
         <main className="flex justify-between items-center gap-6 flex-col mx-auto sm:px-10 px-5">
-          <HeroSection />
+          <HeroSection
+            title="مجموعه ی کدینگو"
+            mainText="آموزش توسعه و مهندسی نرم افزار"
+            subText="به مجم.عه ی کدینگو خوش آمدید"
+
+            buttonTitle="مشاهده ی دوره ها"
+            buttonPosition="right"
+            buttonUrl="/courses"
+          />
           <div className="shadow-input mx-auto max-w-md rounded-none bg-highlight-text-dark  p-4 md:rounded-2xl md:p-8 dark:bg-main-text-light">
               <h2 className="text-xl font-bold text-main-text-light dark:text-main-text-dark">
                   به کدنیگو پلاس خوش آمدید
