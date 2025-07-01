@@ -13,7 +13,7 @@ class MainCategory(models.Model):
         verbose_name='نامک'
     )
     icon = models.FileField(
-        upload_to='Blogs/MainCategory_icons/',
+        upload_to='Articles/MainCategory_icons/',
         verbose_name='آیکون'
     )
     description = models.TextField(
