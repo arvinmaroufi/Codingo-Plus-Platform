@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'Blogs.apps.BlogsConfig',
     'Authentication.apps.AuthenticationConfig',
     'Otps.apps.OtpsConfig',
+    'Articles.apps.ArticlesConfig',
 ]
 
 MIDDLEWARE = [
