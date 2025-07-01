@@ -209,19 +209,19 @@ class CommentsReplayRouter(routers.DefaultRouter):
 
     def __init__(self):
         super().__init__()
-        self.register(r'', views.CommentReplyViewSet, basename='comments-replays')
+        self.register(r'', views.CommentReplayViewSet, basename='comments-replays')
 
     def get_urls(self):
         custom_urls = [
             path('', include([
-                path('', views.CommentReplyViewSet.as_view({'get': 'list'})),
+                path('', views.CommentReplayViewSet.as_view({'get': 'list'})),
 
-                path('course-comments/<slug:slug>/', views.CommentReplyViewSet.as_view({'get': 'course_comments'})),
+                path('course-comments/<slug:slug>/', views.CommentReplayViewSet.as_view({'get': 'course_comments'})),
 
-                path('create/', views.CommentReplyViewSet.as_view({'post': 'create'})),
-                path('detail/<int:pk>/', views.CommentReplyViewSet.as_view({'get': 'retrieve'})),
-                path('update/<int:pk>/', views.CommentReplyViewSet.as_view({'put': 'update'})),
-                path('delete/<int:pk>/', views.CommentReplyViewSet.as_view({'delete': 'destroy'})),
+                path('create/', views.CommentReplayViewSet.as_view({'post': 'create'})),
+                path('detail/<int:pk>/', views.CommentReplayViewSet.as_view({'get': 'retrieve'})),
+                path('update/<int:pk>/', views.CommentReplayViewSet.as_view({'put': 'update'})),
+                path('delete/<int:pk>/', views.CommentReplayViewSet.as_view({'delete': 'destroy'})),
             ])),
         ]
         return custom_urls
