@@ -1,9 +1,10 @@
+from django.contrib.auth import authenticate
+
 from rest_framework import serializers, validators
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import UserRegisterOneTimePassword, UserLoginOneTimePassword
-
 
 from Users.models import User
 from Otps.models import OneTimePassword
@@ -13,29 +14,81 @@ import uuid
 
 
 
+class MainTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Include standard claims plus a string URL for the user's profile picture.
+    """
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Basic user info
+        token['phone']     = user.phone
+        token['email']     = user.email
+        token['is_admin']  = user.is_staff
+        token['full_name'] = user.full_name
+        token['username']  = user.username
+        token['user_type'] = user.user_type
+
+        # Map user types to their OneToOne related_name
+        related_map = {
+            'AD': 'admin_profile',
+            'TE': 'teacher_profile',
+            'ST': 'student_profile',
+            'SU': 'supporter_profile',
+        }
+
+        profile_url = None
+        related_name = related_map.get(user.user_type)
+
+        if related_name:
+            try:
+                profile = getattr(user, related_name)
+                pic = getattr(profile, 'profile_picture', None)
+
+                # grab the URL string, not the ImageFieldFile object
+                if pic and hasattr(pic, 'url'):
+                    profile_url = pic.url
+                else:
+                    # fallback: store the file path as string
+                    profile_url = str(pic) if pic else None
+
+            except:
+                # user exists but no profile record yet
+                profile_url = None
+
+        token['profile'] = profile_url
+        return token
+
+
+
+
 class LoginPasswordSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=255)
-    password = serializers.CharField(max_length=255, write_only=True)
+    password = serializers.CharField(write_only=True, max_length=255)
 
-    def validate_phone(self, value):
-        if not User.objects.filter(phone=value).exists():
-            raise serializers.ValidationError({'error': 'شماره تلفن موجود نیست'})
-        return value
+    def validate(self, attrs):
+        phone = attrs.get('phone')
+        password = attrs.get('password')
 
-    def validate_password(self, value):
-        if len(value) < 8:
-            raise serializers.ValidationError({'error': 'رمز عبور باید حداقل ۸ کاراکتر باشد'})
-        return value
-
-    def validate(self, data):
-        phone = data.get('phone')
-        password = data.get('password')
-        if phone is None or password is None:
+        # 1. Required fields
+        if not phone or not password:
             raise serializers.ValidationError({'error': 'شماره تلفن و رمز عبور هر دو الزامی هستند'})
-        user = User.objects.get(phone=phone)
-        if not user.check_password(password):
-            raise serializers.ValidationError({'error': 'رمز عبور اشتباه است'})
-        return data
+
+        # 2. Password length
+        if len(password) < 8:
+            raise serializers.ValidationError({'error': 'رمز عبور باید حداقل ۸ کاراکتر باشد'})
+
+        # 3. Authenticate user (also checks existence)
+        user = authenticate(phone=phone, password=password)
+        if user is None:
+            # Could be wrong phone or wrong password
+            raise serializers.ValidationError({'error': 'شماره تلفن یا رمز عبور اشتباه است'})
+
+        # 4. Attach the user for your view to use
+        attrs['user'] = user
+        return attrs
 
 
 
@@ -275,15 +328,9 @@ class UserRegisterOneTimePasswordValidateSerializer(serializers.Serializer):
 
         user.save()
 
-        refresh = RefreshToken.for_user(user)
+        refresh = MainTokenObtainPairSerializer.get_token(user)
 
         return {
-            'user': {
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'user_type': user.user_type
-            },
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
