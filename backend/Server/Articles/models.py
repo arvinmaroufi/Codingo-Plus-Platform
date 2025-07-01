@@ -2,7 +2,6 @@ from django.db import models
 
 
 class MainCategory(models.Model):
-    """Represents main categories for blog posts."""
     title = models.CharField(
         max_length=100,
         unique=True,
