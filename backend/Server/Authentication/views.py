@@ -3,15 +3,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView, Response
 from rest_framework import status
 
-from rest_framework_simplejwt.tokens import RefreshToken
-
 
 from .serializers import (
     LoginPasswordSerializer,
-    UserRegisterOneTimePasswordSerializer,
-    UserRegisterOneTimePasswordValidateSerializer,
+    MainTokenObtainPairSerializer,
     UserLoginOneTimePasswordSerializer,
-    UserLoginOneTimePasswordValidateSerializer
+    UserRegisterOneTimePasswordSerializer,
+    UserLoginOneTimePasswordValidateSerializer,
+    UserRegisterOneTimePasswordValidateSerializer,
 )
 from .permissions import IsNotAuthenticated
 
@@ -38,13 +37,12 @@ class LoginPasswordAPIView(APIView):
             if not user.is_active:
                 return Response({'error': 'کاربر فعال نیست'}, status=status.HTTP_401_UNAUTHORIZED)
             
-            refresh = RefreshToken.for_user(user)
+            refresh = MainTokenObtainPairSerializer.get_token(user)
             
             return Response(
                 {
                     'refresh': str(refresh), 
-                    'access': str(refresh.access_token),
-                    'user_type': user.user_type
+                    'access': str(refresh.access_token)
                 },
                 status=status.HTTP_200_OK
             )
@@ -63,8 +61,8 @@ class UserLoginRequestOtpAPIView(APIView):
 
                 return Response(
                     {
-                        'Detail': {
-                            'Message': 'Otp created successfully',
+                        'detail': {
+                            'message': 'Otp created successfully',
                             'token': otp_data['token'], 
                             'code': otp_data['code']
                         }
@@ -72,9 +70,9 @@ class UserLoginRequestOtpAPIView(APIView):
                     status=status.HTTP_200_OK
                 )
             else:
-                return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'Detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -95,7 +93,7 @@ class UserLoginValidateOtpAPIView(APIView):
                 if not user.is_active:
                     return Response({'error': 'کاربر فعال نیست'}, status=status.HTTP_401_UNAUTHORIZED)
                 
-                refresh = RefreshToken.for_user(user)
+                refresh = MainTokenObtainPairSerializer.get_token(user)
                 
                 return Response(
                     {
@@ -122,8 +120,8 @@ class UserRegisterRequestOtpAPIView(APIView):
 
                 return Response(
                     {
-                        'Detail': {
-                            'Message': 'Otp created successfully',
+                        'detail': {
+                            'message': 'Otp created successfully',
                             'token': otp_data['token'], 
                             'code': otp_data['code']
                         }
@@ -131,9 +129,9 @@ class UserRegisterRequestOtpAPIView(APIView):
                     status=status.HTTP_201_CREATED
                 )
             else:
-                return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'Detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -155,19 +153,18 @@ class UserRegisterValidateOtpAPIView(APIView):
 
                         return Response(
                             {
-                                'Detail': {
-                                    'Message': 'User created successfully',
-                                    'User': user_data['user'],
-                                    'Token': user_data['tokens']
+                                'detail': {
+                                    'message': 'User created successfully',
+                                    'token': user_data['tokens']
                                 }
                             },
                             status=status.HTTP_201_CREATED
                         )
                     else:
-                        return Response({'Detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response({'Detail': 'Otp register does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({'detail': 'Otp register does not exist.'}, status=status.HTTP_404_NOT_FOUND)
             else:
-                return Response({'Detail': 'OTP does not exist'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'detail': 'Otp does not exist'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({'Detail': 'You are already authenticated'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'You are already authenticated'}, status=status.HTTP_400_BAD_REQUEST)
