@@ -74,3 +74,25 @@ class TagRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+
+
+class AuthorRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.AuthorViewSet, basename='article')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.AuthorViewSet.as_view({'get': 'list'})),
+                path('create/', views.AuthorViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    path('', views.AuthorViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                ])),
+            ])),
+        ]
+        return custom_urls
