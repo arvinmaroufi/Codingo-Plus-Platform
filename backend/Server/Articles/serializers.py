@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag
+from .models import MainCategory, SubCategory, Tag, Author
 
 
 
@@ -104,3 +104,31 @@ class TagSerializer(serializers.ModelSerializer):
         instance.save()
         
         return instance
+
+
+
+class AuthorSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = Author
+        fields = [
+            'user_username',
+            'full_name',
+            'bio',
+            'profile_picture',
+            'created_at',
+            'updated_at',
+        ]
+        
+    def create(self, validated_data):
+        return Author.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.full_name = validated_data.get('full_name', instance.full_name)
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.profile_picture = validated_data.get('profile_picture', instance.profile_picture)
+        instance.save()
+        
+        return instance
+    
