@@ -167,7 +167,7 @@ class Article(models.Model):
     sub_category = models.ForeignKey(
         SubCategory,
         on_delete=models.CASCADE,
-        related_name='blogs',
+        related_name='articles',
         verbose_name='دسته بندی'
     )
     tags = models.ManyToManyField(
