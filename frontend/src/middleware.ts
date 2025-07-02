@@ -40,7 +40,6 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
     // cookieName: "next-auth.session-token", // override if you changed it
   });
-  console.log("session token:", token);  // will be null until login
 
   // 1) Public pages: if already signed in, bounce to dashboard
   if (PUBLIC_PAGES.some((p) => pathname === p)) {
