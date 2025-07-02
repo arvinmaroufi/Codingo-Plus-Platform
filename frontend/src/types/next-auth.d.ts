@@ -1,8 +1,9 @@
-// types/next-auth.d.ts
 import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
 import { JWT as NextAuthJWT } from "next-auth/jwt";
 
-export type UserType = | "AD" | "TE" | "ST" | "SU"
+export type UserType = "AD" | "TE" | "ST" | "SU";
+
+
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -11,31 +12,40 @@ declare module "next-auth" {
       phone: string;
       email: string;
       full_name: string;
-      user_type: string;
+      username: string;
+      user_type: UserType;
       profile: string;
+      is_admin: boolean;
     } & DefaultSession["user"];
     accessToken: string;
   }
 
+
+
   interface User extends DefaultUser {
-    user_id: number;
+    id: number;
     phone: string;
     email: string;
     full_name: string;
-    user_type: string;
-    profile: string;
+    username: string;
     user_type: UserType;
+    profile: string;
+    is_admin: boolean;
   }
 }
 
+
+
 declare module "next-auth/jwt" {
   interface JWT extends NextAuthJWT {
-    user_id: number;
+    id: number;
     phone: string;
     email: string;
     full_name: string;
-    user_type: string;
+    username: string;
+    user_type: UserType;
     profile: string;
+    is_admin: boolean;
     accessToken: string;
     refreshToken: string;
     accessTokenExpires: number;
