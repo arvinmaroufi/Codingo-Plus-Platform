@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import MainCategory, SubCategory, Tag, Author, ArticleContent
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, AuthorSerializer, ArticleContentSerializer
+from .models import MainCategory, SubCategory, Tag, Author, ArticleContent, Article
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, AuthorSerializer, ArticleContentSerializer, ArticleSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrAuthor
 
 
@@ -150,6 +150,50 @@ class AuthorViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The Author is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class ArticleViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrAuthor]
+    lookup_field = 'slug'
+    
+    def list(self, request):
+        queryset = Article.objects.all()
+        serializer = ArticleSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def create(self, request):
+        serializer = ArticleSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Article is added.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def retrieve(self, request, slug=None):
+        instance = get_object_or_404(Article, slug=slug)
+        serializer = ArticleSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, slug=None):
+        instance = get_object_or_404(Article, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        serializer = ArticleSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Article is updated.'}, status=status.HTTP_205_RESET_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, slug=None):
+        instance = get_object_or_404(Article, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'The Article is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
+    def publish(self, request, slug=None):
+        instance = get_object_or_404(Article, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.publish()
+        return Response({'message': 'The Article is published.'}, status=status.HTTP_200_OK)
 
 
 class ArticleContentViewSet(ViewSet):
