@@ -14,6 +14,7 @@ comment_reply_router = CommentReplyRouter()
 
 urlpatterns = [
     path('blogs/', include(blog_router.get_urls())),
+    path('main-categories/', include(main_category_router.get_urls())),
     path('sub-categories/', include(sub_category_router.get_urls())),
     path('tags/', include(tag_router.get_urls())),
     path('comments/', include(comment_router.get_urls())),
