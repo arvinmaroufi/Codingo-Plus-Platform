@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import MainCategory, SubCategory, Tag
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer
+from .models import MainCategory, SubCategory, Tag, Author
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, AuthorSerializer
 from .permissions import IsAdminOrReadOnly
 
 
@@ -113,3 +113,40 @@ class TagViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The Tag is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class AuthorViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def list(self, request):
+        queryset = Author.objects.all()
+        serializer = AuthorSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def create(self, request):
+        serializer = AuthorSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Author is added.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def retrieve(self, request, pk=None):
+        instance = get_object_or_404(Author, pk=pk)
+        serializer = AuthorSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, pk=None):
+        instance = get_object_or_404(Author, pk=pk)
+        self.check_object_permissions(request=request, obj=instance)
+        serializer = AuthorSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Author is updated.'}, status=status.HTTP_205_RESET_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, pk=None):
+        instance = get_object_or_404(Author, pk=pk)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'The Author is deleted.'}, status=status.HTTP_204_NO_CONTENT)
