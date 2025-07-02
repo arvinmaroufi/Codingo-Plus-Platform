@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory
+from .models import MainCategory, SubCategory, Tag
 
 
 
@@ -78,6 +78,29 @@ class SubCategorySerializer(serializers.ModelSerializer):
         instance.slug = validated_data.get('slug', instance.slug)
         instance.icon = validated_data.get('icon', instance.icon)
         instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        
+        return instance
+
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = [
+            'title',
+            'slug',
+            'created_at',
+            'updated_at',
+        ]
+        
+    
+    def create(self, validated_data):
+        return Tag.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
         instance.save()
         
         return instance
