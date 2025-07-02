@@ -1,4 +1,5 @@
 from django.db import models
+from Users.models import User
 
 
 class MainCategory(models.Model):
@@ -110,3 +111,42 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Author(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='کاربر'
+    )
+    full_name = models.CharField(
+        max_length=100,
+        verbose_name='نام و نام خانوادگی'
+    )
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='بیو'
+    )   
+    profile_picture = models.ImageField(
+        upload_to='Articles/Author/profile_picture/',
+        null=True,
+        blank=True,
+        verbose_name="تصویر پروفایل"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ به‌روزرسانی'
+    )
+    
+    class Meta:
+        verbose_name = 'نویسنده'
+        verbose_name_plural = 'نویسنده ها'
+    
+    def __str__(self):
+        return self.full_name
