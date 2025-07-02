@@ -22,5 +22,6 @@ urlpatterns = [
     path('ticket-attachments/', include(ticket_attachment_router.get_urls())),
     path('course-departments/', include(course_department_router.get_urls())),
     path('course-tickets/', include(course_ticket_router.get_urls())),
+    path('course-ticket-messages/', include(course_ticket_message_router.get_urls())),
     path('course-ticket-attachments/', include(course_ticket_attachment_router.get_urls())),
 ]
