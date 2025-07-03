@@ -16,7 +16,6 @@ export default function ClientProviders({
   return (
     <SessionProvider session={session} basePath="/api/auth">
       <Theme>
-        <Navbar />
         {children}
       </Theme>
     </SessionProvider>
