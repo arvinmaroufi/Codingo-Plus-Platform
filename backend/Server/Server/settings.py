@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'Authentication.apps.AuthenticationConfig',
     'Otps.apps.OtpsConfig',
     'Articles.apps.ArticlesConfig',
+    'Books.apps.BooksConfig',
 ]
 
 MIDDLEWARE = [
