@@ -159,25 +159,29 @@ class UserRegisterOneTimePasswordSerializer(serializers.ModelSerializer):
 
     # Define the email field with validation to ensure uniqueness
     email = serializers.EmailField(
-        validators=[
-            validators.UniqueValidator(queryset=User.objects.all())  # Ensure email is unique in User model
-        ],
         required=True,  # Email is required
+        write_only=True,
         help_text="Enter a unique email address"  # Help text for the email field
+    )
+
+    # Define the phone field with validation to ensure uniqueness
+    phone = serializers.CharField(
+        required=True,  # Phone is required
+        write_only=True,
+        help_text="Enter a unique phone address"  # Help text for the phone field
     )
 
     # Define the username field
     username = serializers.CharField(
-        validators=[
-            validators.UniqueValidator(queryset=User.objects.all())  # Ensure username is unique in User model
-        ],
         required=True,  # Username is required
+        write_only=True,
         help_text="Enter a unique username"  # Help text for the username field
     )
 
     # Define the full name field
     full_name = serializers.CharField(
         required=True,  # Full name is required
+        write_only=True,
         help_text="Enter your full name"  # Help text for the full name field
     )
 
@@ -203,53 +207,37 @@ class UserRegisterOneTimePasswordSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ['otp']
 
-    
-     # Validate the password field
-    def validate_password(self, value):
-        # Check if the password length is within the allowed range
-        if len(value) < 8 or len(value) > 16:
-            raise serializers.ValidationError('Password must be at least 8 characters long and the most 16 characters long')
-        return value
-
-    # Validate the password_conf field
-    def validate_password_conf(self, value):
-        # Check if the password_conf length is within the allowed range
-        if len(value) < 8 or len(value) > 16:
-            raise serializers.ValidationError('Password must be at least 8 characters long and the most 16 characters long')
-        return value
-
-    # Validate the username field
-    def validate_username(self, value):
-        # Check if the username length is within the allowed range
-        if len(value) < 3 or len(value) > 20:
-            raise serializers.ValidationError('Username must be between 3 and 20 characters long')
-        return value
-
-    # Validate the full name field
-    def validate_full_name(self, value):
-        # Check if the full name length is within the allowed range
-        if len(value) < 3 or len(value) > 50:
-            raise serializers.ValidationError('Full name must be between 3 and 50 characters long')
-        return value
-    
-    def validate_user_type(self, value):
-        if len(value) != 2:
-            raise serializers.ValidationError("The user type must have a length of 2.")
-        if value not in ('OW', 'SC', 'SP'):
-            raise serializers.ValidationError("The user type must be one of the following: OW, SC, SP.")
-        return value
-
-
 
     # Validate the entire serializer
     def validate(self, attrs):
-        # Check if the password and password_conf match
+
         if attrs['password'] != attrs['password_conf']:
-            raise serializers.ValidationError('Passwords do not match')
+            raise serializers.ValidationError({'error': 'رمزهای عبور با هم تطابق ندارند'})
+        
         if attrs['password'] == attrs['username']:
-            raise serializers.ValidationError('Password cannot be the same as the username')
+            raise serializers.ValidationError({'error': 'رمز عبور نمی‌تواند با نام کاربری یکسان باشد'})
+        
+        if len(attrs['phone']) == 12:
+            raise serializers.ValidationError({'error': 'شماره تماس باید 11 رقمی باشد'})
+        
         if len(attrs['password']) < 8 or len(attrs['password']) > 16:
-            raise serializers.ValidationError('Password must be between 8 and 16 characters long')
+            raise serializers.ValidationError({'error': 'رمز عبور باید حداقل 8 کاراکتر و حداکثر 16 کاراکتر طول داشته باشد.'})
+        
+        if len(attrs['full_name']) < 3 or len(attrs['full_name']) > 50:
+            raise serializers.ValidationError({'error': 'نام کامل باید بین ۳ تا ۵۰ کاراکتر باشد'})
+        
+        if len(attrs['username']) < 3 or len(attrs['username']) > 20:
+            raise serializers.ValidationError({'error': 'نام کاربری باید بین ۳ تا ۲۰ کاراکتر باشد'})
+        
+        if User.objects.filter(username=attrs['username']).exists():
+            raise serializers.ValidationError({'error': 'نام کاربری باید یکتا باشد'})
+        
+        if User.objects.filter(phone=attrs['phone']).exists():
+            raise serializers.ValidationError({'error': 'شماره تلفن باید یکتا باشد'})
+        
+        if User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({'error': 'ایمیل باید یکتا باشد'})
+        
         return attrs
 
 
@@ -275,7 +263,7 @@ class UserRegisterOneTimePasswordSerializer(serializers.ModelSerializer):
             phone=validated_data['phone'],
             username=validated_data['username'],
             password=validated_data['password'],
-            user_type=validated_data['user_type'],
+            user_type="ST",
             full_name=validated_data['full_name'],
             password_conf=validated_data['password_conf']
         )
@@ -303,9 +291,9 @@ class UserRegisterOneTimePasswordValidateSerializer(serializers.Serializer):
             if otp.code == attrs['code']:
                 return attrs
             else:
-                raise serializers.ValidationError({'code': 'Invalid OTP code.'})
+                raise serializers.ValidationError({'erorr': 'کد اعتبار سنجی نامعتبر است.'})
         else:
-            raise serializers.ValidationError('Inactive OTP')
+            raise serializers.ValidationError({'erorr': 'کد اعتبار سنجی فعال نمی باشد'})
     
 
     def create(self, validated_data, token):

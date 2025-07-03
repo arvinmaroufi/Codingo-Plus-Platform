@@ -121,7 +121,7 @@ class UserRegisterRequestOtpAPIView(APIView):
                 return Response(
                     {
                         'detail': {
-                            'message': 'Otp created successfully',
+                            'message': 'کد اعتبار سنجی با موفقیت ایجاد شد.',
                             'token': otp_data['token'], 
                             'code': otp_data['code']
                         }
@@ -131,7 +131,7 @@ class UserRegisterRequestOtpAPIView(APIView):
             else:
                 return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'detail': 'You are already logged in'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'شما قبلا وارد شده اید.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -146,7 +146,7 @@ class UserRegisterValidateOtpAPIView(APIView):
                     serializer = UserRegisterOneTimePasswordValidateSerializer(data=request.data, context={'otp_token': otp.token})
                     if serializer.is_valid(raise_exception=True):
 
-                        user_data = serializer.create(
+                        tokens = serializer.create(
                             validated_data=serializer.validated_data, 
                             token=token
                         )
@@ -154,17 +154,17 @@ class UserRegisterValidateOtpAPIView(APIView):
                         return Response(
                             {
                                 'detail': {
-                                    'message': 'User created successfully',
-                                    'token': user_data['tokens']
+                                    'message': 'کاربر با موفقیت ایجاد شده است.',
+                                    'token': tokens['tokens']
                                 }
                             },
                             status=status.HTTP_201_CREATED
                         )
                     else:
-                        return Response({'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response({'detail': 'Otp register does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({'error': 'کد اعتبار سنجی موجود نیست.'}, status=status.HTTP_404_NOT_FOUND)
             else:
-                return Response({'detail': 'Otp does not exist'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Otp does not exist'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({'detail': 'You are already authenticated'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'شما احراز هویت شده اید.'}, status=status.HTTP_400_BAD_REQUEST)

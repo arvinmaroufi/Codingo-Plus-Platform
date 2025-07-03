@@ -171,8 +171,8 @@ REST_FRAMEWORK = {
 # JWT settings
 SIMPLE_JWT = {
     #  Tokens life time
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
     
     #  Refresh tokens
     'ROTATE_REFRESH_TOKENS': True,
@@ -216,6 +216,9 @@ SIMPLE_JWT = {
     # Token sliding lifetime
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    # It will work instead of the default serializer(TokenObtainPairSerializer).
+    "TOKEN_OBTAIN_SERIALIZER": "Authentication.MainTokenObtainPairSerializer",
 }
 
 
