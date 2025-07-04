@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag
+from .models import MainCategory, SubCategory, Tag, BookContent
 
 
 
@@ -99,6 +99,36 @@ class TagSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.title = validated_data.get('title', instance.title)
         instance.slug = validated_data.get('slug', instance.slug)
+        instance.save()
+        
+        return instance
+
+
+class BookContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookContent
+        fields = [
+            'id',
+            'title',
+            'content',
+            'image',
+            'video',
+            'link',
+            'order',
+            'created_at',
+            'updated_at',
+        ]
+        
+    def create(self, validated_data):
+        return BookContent.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.image = validated_data.get('image', instance.image)
+        instance.video = validated_data.get('video', instance.video)
+        instance.link = validated_data.get('link', instance.link)
+        instance.order = validated_data.get('order', instance.order)
         instance.save()
         
         return instance
