@@ -268,3 +268,37 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.content[:50]
+
+
+class CommentReply(models.Model):
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name='comments_replies',
+        verbose_name='نظر مربوطه'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='book_user_comment_replies',
+        verbose_name='کاربر'
+    )
+    content = models.TextField(
+        verbose_name='نظر'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    approved = models.BooleanField(
+        default=False,
+        verbose_name='تایید شده'
+    )
+
+    class Meta:
+        verbose_name = 'ریپلای'
+        verbose_name_plural = 'ریپلای ها'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return self.content[:50]
