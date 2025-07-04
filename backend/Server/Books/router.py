@@ -74,3 +74,35 @@ class TagRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+
+
+class BookRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.BookViewSet, basename='book')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.BookViewSet.as_view({'get': 'list'})),
+                path('create/', views.BookViewSet.as_view({'post': 'create'})),
+                path('<slug:slug>/', include([
+                    path('', views.BookViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                    path('publish/', views.BookViewSet.as_view({'post': 'publish'})),
+                    path('contents/', include([
+                        path('', views.BookContentViewSet.as_view({'get': 'list'})),
+                        path('create/', views.BookContentViewSet.as_view({'post': 'create'})),
+                        path('<int:pk>/', views.BookContentViewSet.as_view({
+                            'get': 'retrieve',
+                            'put': 'update',
+                            'delete': 'destroy'
+                        })),
+                    ])),
+                ])),
+            ])),
+        ]
+        return custom_urls
