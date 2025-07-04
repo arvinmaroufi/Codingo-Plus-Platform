@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag, BookContent, Book
+from .models import MainCategory, SubCategory, Tag, BookContent, Book, CommentReply
 
 
 
@@ -202,6 +202,31 @@ class BookSerializer(serializers.ModelSerializer):
         instance.file = validated_data.get('file', instance.file)
         instance.payment_status = validated_data.get('payment_status', instance.payment_status)
         instance.language = validated_data.get('language', instance.language)
+        instance.save()
+        
+        return instance
+
+
+class CommentReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReply
+        fields = [
+            'id',
+            'user',
+            'content',
+            'created_at',
+            'approved',
+        ]
+        read_only_fields = ['user', 'created_at']
+        
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['user'] = request.user
+        return CommentReply.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.approved = validated_data.get('approved', instance.approved)
         instance.save()
         
         return instance
