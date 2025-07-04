@@ -4,10 +4,11 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import MainCategory, SubCategory, Tag
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer
+from .models import MainCategory, SubCategory, Tag, Book
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, BookSerializer
 from .permissions import IsAdminOrReadOnly
 
+from django.utils import timezone
 
 
 
@@ -113,3 +114,49 @@ class TagViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The Tag is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class BookViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+    
+    def list(self, request):
+        queryset = Book.objects.all()
+        serializer = BookSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def create(self, request):
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Book is added.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def retrieve(self, request, slug=None):
+        instance = get_object_or_404(Book, slug=slug)
+        serializer = BookSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, slug=None):
+        instance = get_object_or_404(Book, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        serializer = BookSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'The Book is updated.'}, status=status.HTTP_205_RESET_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, slug=None):
+        instance = get_object_or_404(Book, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'The Book is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    
+    def publish(self, request, slug=None):
+        instance = get_object_or_404(Book, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.published_at = timezone.now()
+        instance.save()
+        return Response({'message': 'The Book is published.'}, status=status.HTTP_200_OK)
