@@ -112,7 +112,7 @@ class Tag(models.Model):
         return self.title
 
 
-class Books(models.Model):
+class Book(models.Model):
     
     class PaymentStatusChoices(models.TextChoices):
         FREE = 'F', 'رایگان'
