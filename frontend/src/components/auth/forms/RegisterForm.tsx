@@ -97,8 +97,8 @@ export default function RegisterForm() {
       // 2) extract the tokens your backend returned
       const { access, refresh } = data.detail.token;
 
-      // 3) seed NextAuth with those tokens via the "otp" provider
-      const otpRes = await signIn("otp", {
+      // 3) seed NextAuth with those tokens via the "register-otp" provider
+      const otpRes = await signIn("register-otp", {
         redirect: false,
         accessToken: access,
         refreshToken: refresh,
