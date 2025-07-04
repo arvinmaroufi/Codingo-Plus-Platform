@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag, BookContent
+from .models import MainCategory, SubCategory, Tag, BookContent, Book
 
 
 
@@ -129,6 +129,79 @@ class BookContentSerializer(serializers.ModelSerializer):
         instance.video = validated_data.get('video', instance.video)
         instance.link = validated_data.get('link', instance.link)
         instance.order = validated_data.get('order', instance.order)
+        instance.save()
+        
+        return instance
+
+
+class BookSerializer(serializers.ModelSerializer):
+    sub_category_slug = serializers.CharField(write_only=True)
+    tags_slugs = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    contents = BookContentSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Book
+        fields = [
+            'id',
+            'sub_category_slug',
+            'tags_slugs',
+            'title',
+            'slug',
+            'description',
+            'author',
+            'image',
+            'file',
+            'payment_status',
+            'language',
+            'published_at',
+            'created_at',
+            'updated_at',
+            'contents',
+        ]
+        
+    def create(self, validated_data):
+        tags_slugs = validated_data.pop('tags_slugs', [])
+        sub_category_slug = validated_data.pop('sub_category_slug')
+        
+        try:
+            sub_category = SubCategory.objects.get(slug=sub_category_slug)
+        except SubCategory.DoesNotExist:
+            raise serializers.ValidationError({"sub_category_slug": "SubCategory does not exist."})
+            
+        book = Book.objects.create(
+            sub_category=sub_category,
+            **validated_data
+        )
+        
+        if tags_slugs:
+            tags = Tag.objects.filter(slug__in=tags_slugs)
+            book.tags.set(tags)
+            
+        return book
+    
+    def update(self, instance, validated_data):
+        tags_slugs = validated_data.pop('tags_slugs', None)
+        sub_category_slug = validated_data.pop('sub_category_slug', None)
+        
+        if sub_category_slug:
+            try:
+                sub_category = SubCategory.objects.get(slug=sub_category_slug)
+                instance.sub_category = sub_category
+            except SubCategory.DoesNotExist:
+                raise serializers.ValidationError({"sub_category_slug": "SubCategory does not exist."})
+                
+        if tags_slugs is not None:
+            tags = Tag.objects.filter(slug__in=tags_slugs)
+            instance.tags.set(tags)
+            
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.description = validated_data.get('description', instance.description)
+        instance.author = validated_data.get('author', instance.author)
+        instance.image = validated_data.get('image', instance.image)
+        instance.file = validated_data.get('file', instance.file)
+        instance.payment_status = validated_data.get('payment_status', instance.payment_status)
+        instance.language = validated_data.get('language', instance.language)
         instance.save()
         
         return instance
