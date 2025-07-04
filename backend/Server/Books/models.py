@@ -110,3 +110,69 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Books(models.Model):
+    
+    class PaymentStatusChoices(models.TextChoices):
+        FREE = 'F', 'رایگان'
+        SUBSCRIPTION = 'S', 'اشتراکی'
+        
+    class LanguageChoices(models.TextChoices):
+        FA = 'FA', 'فارسی'
+        EN = 'EN', 'انگلیسی'
+    
+    
+    title = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='عنوان کتاب'
+    )
+    description = models.TextField(
+        verbose_name='توضیحات'
+    )
+    author = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='نویسنده کتاب'
+    )
+    image = models.ImageField(
+        upload_to="Books/images/",
+        blank=True,
+        null=True,
+        verbose_name='تصویر کتاب'
+    )
+    file = models.FileField(
+        upload_to='Books/files/',
+        verbose_name='فایل'
+    )
+    payment_status = models.CharField(
+        max_length=1,
+        choices=PaymentStatusChoices.choices,
+        default=PaymentStatusChoices.SUBSCRIPTION
+    )
+    language = models.CharField(
+        max_length=2,
+        choices=LanguageChoices.choices,
+        default=LanguageChoices.FA
+    )
+    published_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='تاریخ انتشار'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ به‌روزرسانی'
+    )
+
+    class Meta:
+        verbose_name = 'کتاب'
+        verbose_name_plural = 'کتاب ها'
+
+    def __str__(self):
+        return self.title
