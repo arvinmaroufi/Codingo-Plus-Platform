@@ -8,7 +8,7 @@ class MainCategoryRouter(routers.DefaultRouter):
 
     def __init__(self):
         super().__init__()
-        self.register(r'', views.MainCategoryViewSet, basename='article')
+        self.register(r'', views.MainCategoryViewSet, basename='book')
 
     def get_urls(self):
         custom_urls = [
@@ -32,7 +32,7 @@ class SubCategoryRouter(routers.DefaultRouter):
 
     def __init__(self):
         super().__init__()
-        self.register(r'', views.SubCategoryViewSet, basename='article')
+        self.register(r'', views.SubCategoryViewSet, basename='book')
 
     def get_urls(self):
         custom_urls = [
