@@ -126,3 +126,26 @@ class CommentReplyRouter(routers.DefaultRouter):
             ])),
         ]
         return custom_urls
+    
+
+class CommentRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CommentViewSet, basename='book')
+
+    def get_urls(self):
+        custom_urls = [
+            path('', include([
+                path('', views.CommentViewSet.as_view({'get': 'list'})),
+                path('create/', views.CommentViewSet.as_view({'post': 'create'})),
+                path('<int:pk>/', include([
+                    path('', views.CommentViewSet.as_view({
+                        'get': 'retrieve',
+                        'put': 'update',
+                        'delete': 'destroy'
+                    })),
+                    path('replies/', views.CommentReplyViewSet.as_view({'get': 'list'})),
+                ])),
+            ])),
+        ]
+        return custom_urls
