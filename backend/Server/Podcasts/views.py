@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import MainCategory, SubCategory, Tag
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer
+from .models import MainCategory, SubCategory, Tag, Podcast
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, PodcastSerializer
 from .permissions import IsAdminOrReadOnly
 
 
@@ -110,3 +110,39 @@ class TagViewSet(ViewSet):
         self.check_object_permissions(request=request, obj=instance)
         instance.delete()
         return Response({'message': 'The Tag is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class PodcastViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+
+    def list(self, request):
+        queryset = Podcast.objects.all()
+        serializer = PodcastSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, slug):
+        podcast = get_object_or_404(Podcast, slug=slug)
+        serializer = PodcastSerializer(podcast)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        serializer = PodcastSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'Podcast created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, slug):
+        instance = get_object_or_404(Podcast, slug=slug)
+        serializer = PodcastSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'Podcast updated successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, slug):
+        podcast = get_object_or_404(Podcast, slug=slug)
+        podcast.delete()
+        return Response({'message': 'Podcast deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
