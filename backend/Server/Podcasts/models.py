@@ -1,5 +1,6 @@
 from django.db import models
 from ckeditor_uploader.fields import RichTextUploadingField
+from Users.models import User
 
 
 class MainCategory(models.Model):
@@ -252,3 +253,37 @@ class PodcastContent(models.Model):
 
     def __str__(self):
         return self.title if self.title else f"محتوای بخش {self.order}"
+
+
+class Comment(models.Model):
+    podcast = models.ForeignKey(
+        Podcast,
+        on_delete=models.CASCADE,
+        related_name='podcast_comments',
+        verbose_name='پادکست مربوطه'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='podcast_user_comments',
+        verbose_name='کاربر'
+    )
+    content = models.TextField(
+        verbose_name='نظر'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    approved = models.BooleanField(
+        default=False,
+        verbose_name='تایید شده'
+    )
+
+    class Meta:
+        verbose_name = 'نظر'
+        verbose_name_plural = 'نظرات'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.content[:50]
