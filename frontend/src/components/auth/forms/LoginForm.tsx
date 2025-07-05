@@ -1,13 +1,13 @@
-// components/auth/forms/LoginForm.tsx
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/Input";
-import OTPInput from "../OtpInput";
-import { cn } from "@/lib/utils";
+
+import { PhoneInput } from "./PhoneInput";
+import { ModeSwitch } from "./ModeSwitch";
+import { PasswordLoginForm } from "./PasswordLoginForm";
+import { OTPLoginForm } from "./OTPLoginForm";
 
 
 
@@ -16,45 +16,48 @@ export default function LoginForm() {
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") || "/";
 
-  // fields + flags
+  // --- shared state ---
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [otpToken, setOtpToken] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [devOtp, setDevOtp] = useState(""); // only for dev display
-
-  const [mode, setMode] = useState<"default"|"password"|"otp">("default");
+  const [canProceed, setCanProceed] = useState(false);
+  const [mode, setMode] = useState<"default" | "password" | "otp">("default");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // buttons enabled once phone looks valid
-  const [canProceed, setCanProceed] = useState(false);
+  // --- password state ---
+  const [password, setPassword] = useState("");
+
+  // --- OTP state ---
+  const [otpToken, setOtpToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [devOtp, setDevOtp] = useState("");
+
+  // enable only when phone length ≥11
   useEffect(() => {
     setCanProceed(/^\d{11,}$/.test(phone.trim()));
   }, [phone]);
 
-  // 1) PHONE+PASSWORD login
+  // 1) password login
   async function handlePasswordLogin(e: FormEvent) {
     e.preventDefault();
     setErrorMsg(""); setLoading(true);
 
     const res = await signIn("credentials", {
       redirect: false,
-      phone, password, callbackUrl,
+      phone, password,
+      callbackUrl,
     });
-
     setLoading(false);
     if (res?.error) return setErrorMsg(res.error);
     router.push(res?.url || callbackUrl);
   }
 
-  // 2) REQUEST OTP (single step)
+  // 2) request OTP
   async function handleRequestOtp() {
     setErrorMsg(""); setLoading(true);
 
     try {
       const res = await fetch(
-        `${process.env.DJANGO_API_URL}auth/login-request-otp/`,
+        `${process.env.DJANGO_API_URL}/auth/login-request-otp/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -68,7 +71,7 @@ export default function LoginForm() {
         setErrorMsg(data.detail.message || "خطا در ارسال کد OTP");
         return;
       }
-
+      console.log(data.detail);
       setOtpToken(data.detail.token);
       setDevOtp(data.detail.code || "");
       setMode("otp");
@@ -78,7 +81,7 @@ export default function LoginForm() {
     }
   }
 
-  // 3) VERIFY OTP + login-otp
+  // 3) verify OTP
   async function handleVerifyOtp(e: FormEvent) {
     e.preventDefault();
     setErrorMsg(""); setLoading(true);
@@ -89,7 +92,6 @@ export default function LoginForm() {
       code: otpCode,
       callbackUrl,
     });
-
     setLoading(false);
     if (res?.error) return setErrorMsg(res.error);
     router.push(res?.url || callbackUrl);
@@ -97,102 +99,46 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* PHONE INPUT (always visible) */}
-      <div className="space-y-1 mb-6">
-        <Label htmlFor="phone">شماره تلفن</Label>
-        <Input
-          id="phone"
-          type="tel"
-          placeholder="09121234567"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-        />
-      </div>
+      {/* PHONE */}
+      <PhoneInput phone={phone} setPhone={setPhone} />
 
-      {/* MODE SWITCH */}
+      {/* MODE SWITCH OR ERROR */}
       {mode === "default" && (
-        <div className="flex gap-4 mb-6">
-          <button
-            type="button"
-            disabled={!canProceed || loading}
-            onClick={handleRequestOtp}
-            className={cn(
-              "flex-1 py-2 rounded",
-              canProceed
-                ? "bg-primary-light text-white"
-                : "bg-gray-300 text-gray-600 cursor-not-allowed"
-            )}
-          >
-            {loading ? "در حال پردازش…" : "درخواست کد"}
-          </button>
-          <button
-            type="button"
-            disabled={!canProceed || loading}
-            onClick={() => {
-              setMode("password");
-              setErrorMsg("");
-            }}
-            className={cn(
-              "flex-1 py-2 rounded",
-              canProceed
-                ? "bg-secondary-light text-black"
-                : "bg-gray-300 text-gray-600 cursor-not-allowed"
-            )}
-          >
-            وارد کردن رمز عبور
-          </button>
-        </div>
+        <ModeSwitch
+          mode={mode}
+          canProceed={canProceed}
+          loading={loading}
+          onOtpRequest={handleRequestOtp}
+          onPasswordChoose={() => {
+            setMode("password");
+            setErrorMsg("");
+          }}
+        />
+      )}
+      {errorMsg && (
+        <p className="mb-4 text-sm text-red-600">{errorMsg}</p>
       )}
 
-      {/* ERROR MESSAGE */}
-      {errorMsg && <p className="mb-4 text-sm text-red-600">{errorMsg}</p>}
-
-      {/* PASSWORD FLOW */}
+      {/* PASSWORD */}
       {mode === "password" && (
-        <form onSubmit={handlePasswordLogin} className="space-y-4">
-          <div className="space-y-1">
-            <Label htmlFor="password">رمز عبور</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-gradient-to-br from-base-dark to-primary-light text-white rounded disabled:opacity-50"
-          >
-            {loading ? "در حال ورود…" : "ورود"}
-          </button>
-        </form>
+        <PasswordLoginForm
+          password={password}
+          setPassword={setPassword}
+          loading={loading}
+          onSubmit={handlePasswordLogin}
+        />
       )}
 
-      {/* OTP FLOW */}
+      {/* OTP */}
       {mode === "otp" && (
-        <form onSubmit={handleVerifyOtp} className="space-y-4">
-          <p className="text-sm">
-            کد به <strong>{phone}</strong> ارسال شد:{" "}
-            <code className="bg-gray-100 px-1 rounded">{devOtp || "----"}</code>
-          </p>
-
-          <div className="space-y-1">
-            <Label>کد OTP</Label>
-            <OTPInput length={6} onChange={setOtpCode} onComplete={setOtpCode} />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || otpCode.length < 4}
-            className="w-full py-2 bg-gradient-to-br from-base-dark to-primary-light text-white rounded disabled:opacity-50"
-          >
-            {loading ? "در حال تایید…" : "تایید"}
-          </button>
-        </form>
+        <OTPLoginForm
+          phone={phone}
+          devOtp={devOtp}
+          otpCode={otpCode}
+          setOtpCode={setOtpCode}
+          loading={loading}
+          onSubmit={handleVerifyOtp}
+        />
       )}
     </div>
   );
