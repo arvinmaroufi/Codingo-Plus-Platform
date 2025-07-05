@@ -3,6 +3,7 @@ from .models import (
     MainCategory, SubCategory, Tag, Course, CourseContent,
     CourseFaq, CourseChapter, CourseSession, Comment, CommentReply
 )
+from Accounts.models import UserCourseEnrollment
 
 
 class MainCategorySerializer(serializers.ModelSerializer):
@@ -113,6 +114,7 @@ class TagSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
+    is_enrolled = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -226,6 +228,14 @@ class CourseSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+
+    def get_is_enrolled(self, obj):
+        request = self.context.get('request')
+
+        if UserCourseEnrollment.objects.filter(user=request.user, course=obj, is_active=True).exists():
+            return True
+        
+        return False
 
 
 class CourseContentSerializer(serializers.ModelSerializer):
@@ -362,6 +372,11 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
     chapter_id = serializers.CharField(write_only=True, required=False)
 
+    is_active = serializers.SerializerMethodField()
+    video = serializers.SerializerMethodField()
+    file_link = serializers.SerializerMethodField()
+    resources = serializers.SerializerMethodField()
+
     class Meta:
         model = CourseSession
         fields = '__all__'
@@ -418,6 +433,23 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
         return instance
     
+    def get_is_active(self, obj):
+        request = self.context.get('request')
+
+        if not obj.is_paid:
+            return True
+
+        return UserCourseEnrollment.objects.filter(user=request.user, course=obj.chapter.course, is_active=True).exists()
+
+    def get_video(self, obj):
+        return obj.video if self.get_is_active(obj) else None
+
+    def get_file_link(self, obj):
+        return obj.file_link if self.get_is_active(obj) else None
+
+    def get_resources(self, obj):
+        return obj.resources if self.get_is_active(obj) else None
+
 
 
 
