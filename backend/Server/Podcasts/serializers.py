@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag
+from .models import MainCategory, SubCategory, Tag, PodcastContent
 
 
 
@@ -102,3 +102,20 @@ class TagSerializer(serializers.ModelSerializer):
         instance.save()
         
         return instance
+
+
+class PodcastContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PodcastContent
+        fields = [
+            'id',
+            'title',
+            'content',
+            'image',
+            'video',
+            'link',
+            'order',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
