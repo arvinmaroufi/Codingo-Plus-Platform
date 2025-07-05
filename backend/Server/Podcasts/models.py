@@ -1,4 +1,5 @@
 from django.db import models
+from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class MainCategory(models.Model):
@@ -195,3 +196,59 @@ class Podcast(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PodcastContent(models.Model):
+    podcast = models.ForeignKey(
+        Podcast,
+        on_delete=models.CASCADE,
+        related_name='contents',
+        verbose_name='پادکست مربوطه'
+    )
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='عنوان بخش'
+    )
+    content = RichTextUploadingField(
+        blank=True,
+        null=True,
+        verbose_name='متن بخش'
+    )
+    image = models.ImageField(
+        upload_to="Podcast/content_images/",
+        blank=True,
+        null=True,
+        verbose_name='تصویر بخش'
+    )
+    video = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='ویدیو بخش'
+    )
+    link = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='لینک مرتبط'
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="ترتیب نمایش"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ به‌روزرسانی'
+    )
+
+    class Meta:
+        verbose_name = 'بخش محتوا'
+        verbose_name_plural = 'بخش‌های محتوا'
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title if self.title else f"محتوای بخش {self.order}"
