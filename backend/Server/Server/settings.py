@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'Otps.apps.OtpsConfig',
     'Articles.apps.ArticlesConfig',
     'Books.apps.BooksConfig',
+    'Podcasts.apps.PodcastsConfig',
 ]
 
 MIDDLEWARE = [
