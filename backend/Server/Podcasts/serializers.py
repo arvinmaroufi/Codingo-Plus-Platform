@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MainCategory, SubCategory, Tag, PodcastContent
+from .models import MainCategory, SubCategory, Tag, PodcastContent, Podcast
 
 
 
@@ -119,3 +119,68 @@ class PodcastContentSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+
+class PodcastSerializer(serializers.ModelSerializer):
+    sub_category_slug = serializers.CharField(write_only=True)
+    contents = PodcastContentSerializer(many=True, required=False, read_only=True)
+    
+    class Meta:
+        model = Podcast
+        fields = [
+            'id',
+            'title',
+            'description',
+            'presenter',
+            'sub_category',
+            'sub_category_slug',
+            'tags',
+            'image',
+            'file',
+            'audio',
+            'video',
+            'payment_status',
+            'type_status',
+            'language',
+            'created_at',
+            'updated_at',
+            'contents',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        sub_category_slug = validated_data.pop('sub_category_slug', None)
+        if not sub_category_slug:
+            raise serializers.ValidationError({"sub_category_slug": "This field is required for creating."})
+        
+        try:
+            sub_category = SubCategory.objects.get(slug=sub_category_slug)
+        except SubCategory.DoesNotExist:
+            raise serializers.ValidationError({"sub_category_slug": "SubCategory with this slug doesn't exist."})
+        
+        podcast = Podcast.objects.create(sub_category=sub_category, **validated_data)
+        
+        return podcast
+
+    def update(self, instance, validated_data):
+        sub_category_slug = validated_data.pop('sub_category_slug', None)
+        if sub_category_slug:
+            try:
+                sub_category = SubCategory.objects.get(slug=sub_category_slug)
+            except SubCategory.DoesNotExist:
+                raise serializers.ValidationError({"sub_category_slug": "SubCategory with this slug doesn't exist."})
+            instance.sub_category = sub_category
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.presenter = validated_data.get('presenter', instance.presenter)
+        instance.image = validated_data.get('image', instance.image)
+        instance.file = validated_data.get('file', instance.file)
+        instance.audio = validated_data.get('audio', instance.audio)
+        instance.video = validated_data.get('video', instance.video)
+        instance.payment_status = validated_data.get('payment_status', instance.payment_status)
+        instance.type_status = validated_data.get('type_status', instance.type_status)
+        instance.language = validated_data.get('language', instance.language)
+        instance.save()
+
+        return instance
