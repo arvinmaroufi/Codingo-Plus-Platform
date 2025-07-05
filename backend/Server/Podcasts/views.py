@@ -4,8 +4,8 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import MainCategory, SubCategory, Tag, Podcast, PodcastContent, CommentReply
-from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, PodcastSerializer, PodcastContentSerializer, CommentReplySerializer
+from .models import MainCategory, SubCategory, Tag, Podcast, PodcastContent, CommentReply, Comment
+from .serializers import MainCategorySerializer, SubCategorySerializer, TagSerializer, PodcastSerializer, PodcastContentSerializer, CommentReplySerializer, CommentSerializer
 from .permissions import IsAdminOrReadOnly, IsAdminOrCommentAuthor
 
 
@@ -232,3 +232,42 @@ class CommentReplyViewSet(ViewSet):
         self.check_object_permissions(request, reply)
         reply.delete()
         return Response({'message': 'Reply deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class CommentViewSet(ViewSet):
+    
+    permission_classes = [IsAdminOrCommentAuthor]
+    lookup_field = 'pk'
+
+    def list(self, request):
+        queryset = Comment.objects.all()
+        serializer = CommentSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        serializer = CommentSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'Comment created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        self.check_object_permissions(request, comment)
+        serializer = CommentSerializer(comment, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'message': 'Comment updated successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk)
+        self.check_object_permissions(request, comment)
+        comment.delete()
+        return Response({'message': 'Comment deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
