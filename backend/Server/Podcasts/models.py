@@ -81,3 +81,32 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Tag(models.Model):
+    title = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='عنوان برچسب'
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        verbose_name='نامک'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ به‌روزرسانی'
+    )
+
+    class Meta:
+        verbose_name = 'برچسب'
+        verbose_name_plural = 'برچسب ها'
+        ordering = ['title']
+
+    def __str__(self):
+        return self.title
