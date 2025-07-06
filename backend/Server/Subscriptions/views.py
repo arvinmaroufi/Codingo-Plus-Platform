@@ -45,6 +45,13 @@ class SubscriptionPlanViewSet(viewsets.ViewSet):
             return Response({'message': 'پلن آپدیت شد.'}, status=status.HTTP_200_OK)
         else:
             return Response({'erorr': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+    def destroy(self, request, slug):
+        instance = get_object_or_404(SubscriptionPlan, slug=slug)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'پلن حذف شد.'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class SubscriptionViewSet(viewsets.ViewSet):
