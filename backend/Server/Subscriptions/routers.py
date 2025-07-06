@@ -14,8 +14,8 @@ class SubscriptionPlanRouter(routers.DefaultRouter):
     def get_urls(self):
         custom_urls = [
             path('', include([
-                path('', views.SubscriptionPlanViewSet.as_view({'get': 'list'})),
-                path('<slug:slug>/', views.SubscriptionPlanViewSet.as_view({'get': 'retrieve'})),
+                path('', views.SubscriptionPlanViewSet.as_view({'get': 'list', 'post': 'create'})),
+                path('<slug:slug>/', views.SubscriptionPlanViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
             ])),
         ]
         return custom_urls
@@ -31,7 +31,7 @@ class SubscriptionRouter(routers.DefaultRouter):
         custom_urls = [
             path('', include([
                 path('', views.SubscriptionViewSet.as_view({'get': 'list'})),
-                path('<slug:slug>/', views.SubscriptionViewSet.as_view({'get': 'retrieve'})),
+                path('<slug:slug>/', views.SubscriptionViewSet.as_view({'get': 'retrieve', 'put': 'update'})),
                 path('my-subscription/', views.SubscriptionViewSet.as_view({'get': 'my_subscription'})),
             ])),
         ]
