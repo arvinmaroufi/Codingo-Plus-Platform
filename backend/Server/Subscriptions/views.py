@@ -6,24 +6,35 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Subscription, SubscriptionPlan
 from .serializers import SubscriptionSerializer, SubscriptionPlanSerializer
-
+from .permissions import IsAdminOrReadOnly
 
 
 
 class SubscriptionPlanViewSet(viewsets.ViewSet):
 
     lookup_field = 'slug'
+    permission_classes = [IsAdminOrReadOnly]
 
     def list(self, request):
         queryset = SubscriptionPlan.objects.all()
         serializer = SubscriptionPlanSerializer(instance=queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
     def retrieve(self, request, slug):
         instance = get_object_or_404(SubscriptionPlan, slug=slug)
         serializer = SubscriptionPlanSerializer(instance=instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    
+    def create(self, request):
+        serializer = SubscriptionPlanSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'پلن ایجاد شد.'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'erorr': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class SubscriptionViewSet(viewsets.ViewSet):
