@@ -14,6 +14,11 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+    def create(self, validated_data):
+        query = SubscriptionPlan.objects.create(**validated_data)
+        query.save()
+        return query
+
 
 class SubscriptionSerializer(serializers.ModelSerializer):
 
