@@ -14,6 +14,7 @@ urlpatterns = [
     path('articles/', include('Articles.urls')),
     path('books/', include('Books.urls')),
     path('podcasts/', include('Podcasts.urls')),
+    path('subscriptions/', include('Subscriptions.urls')),
     # ckeditor_editor url
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
