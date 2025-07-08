@@ -1,5 +1,36 @@
 from django.db import models
+from Otps.models import OneTimePassword
+from Users.models import User
 
+
+
+
+class AccountResetPassword(models.Model):
+    
+    otp = models.ForeignKey(
+        OneTimePassword,
+        on_delete=models.CASCADE,
+        related_name="reset_password"
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="user_reset_passwords"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        verbose_name = "Account reset password"
+        verbose_name_plural = "Accounts reset passwords"
+        
+    
+    def __str__(self):
+        return f'{self.otp.token}----{self.otp.code}'
 
 
 
