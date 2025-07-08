@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ResetPasswordOneTimePassword
+from .models import AccountResetPassword
 
 from Users.models import User
 from Authentication.models import OneTimePassword
@@ -12,7 +12,7 @@ import uuid
 
 
 
-class AccountResetPasswordOTPSerializer(serializers.Serializer):
+class ResetPasswordOtpRequestSerializer(serializers.Serializer):
 
     phone = serializers.CharField(required=True, write_only=True)
 
@@ -37,42 +37,44 @@ class AccountResetPasswordOTPSerializer(serializers.Serializer):
 
         user = User.objects.get(phone=validated_data['phone'])
         
-        reset_password_otp = ResetPasswordOneTimePassword.objects.create(
+        reset_password_otp = AccountResetPassword.objects.create(
             otp=otp,
             user=user,
-            phone=validated_data['phone']
         )
 
         reset_password_otp.save()
 
         otp.get_expiration()
 
-        return {'phone': reset_password_otp.phone, 'token': token, 'code': code}
+        return {'token': token, 'code': code}
 
 
 
-class AccountResetPasswordValidateSerializer(serializers.Serializer):
+class ResetPasswordOtpValidateSerializer(serializers.Serializer):
 
     code = serializers.CharField(max_length=6, min_length=6, required=True)
     password = serializers.CharField(max_length=16, min_length=8, required=True)
     password_conf = serializers.CharField(max_length=16, min_length=8, required=True)
 
-    
+
     def validate(self, attrs):
         otp_token = self.context.get('otp_token')
-        
         otp = OneTimePassword.objects.get(token=otp_token)
         reset_password_otp = otp.reset_password.get()
-        
-        if len(attrs['password']) < 8 or len(attrs['password']) > 16:
-            raise serializers.ValidationError({'error': 'رمز عبور باید حداقل 8 کاراکتر و حداکثر 16 کاراکتر طول داشته باشد.'})
 
+        # Enforced by field validators already
         if otp.status_validation() == 'ACT':
-            if otp.code == attrs['code']:
-                # Check if the password and password_conf match
-                if attrs['password'] != attrs['password_conf']:
-                    raise serializers.ValidationError({'erorr': 'رمزهای عبور با هم تطابق ندارند'})
-            else:
+            if otp.code != attrs['code']:
                 raise serializers.ValidationError({'error': 'کد یکبار مصرف نامعتبر نیست.'})
+
+            if attrs['password'] != attrs['password_conf']:
+                raise serializers.ValidationError({'error': 'رمزهای عبور با هم تطابق ندارند'})
+
+            # All checks passed—apply the new password
+            user = reset_password_otp.user
+            user.set_password(attrs['password'])
+            user.save()
         else:
-            raise serializers.ValidationError({'erorr': 'کد یکبار مصرف فعال نیست'})
+            raise serializers.ValidationError({'error': 'کد یکبار مصرف فعال نیست'})
+        
+        return attrs
