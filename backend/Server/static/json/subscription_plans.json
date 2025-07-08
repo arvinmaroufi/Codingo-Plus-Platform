@@ -1,0 +1,30 @@
+[
+  {
+    "name": "برنزی",
+    "slug": "bronze",
+    "level": 1,
+    "description": "پلن برنزی برای دسترسی اولیه با امکانات محدود.",
+    "price_per_day": 5000
+  },
+  {
+    "name": "نقره‌ای",
+    "slug": "silver",
+    "level": 2,
+    "description": "پلن نقره‌ای برای کاربران حرفه‌ای با امکانات بیشتر.",
+    "price_per_day": 6000
+  },
+  {
+    "name": "طلایی",
+    "slug": "gold",
+    "level": 3,
+    "description": "پلن طلایی با سطح دسترسی کامل و پشتیبانی ویژه.",
+    "price_per_day": 9000
+  },
+  {
+    "name": "الماسی",
+    "slug": "diamond",
+    "level": 4,
+    "description": "پلن الماسی برای کاربران VIP با ویژگی‌های سفارشی‌سازی‌شده.",
+    "price_per_day": 10000
+  }
+]
