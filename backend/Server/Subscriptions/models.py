@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-from Users.models import User
 
 
 
@@ -12,12 +11,16 @@ class SubscriptionPlan(models.Model):
 
     description = models.TextField()
 
+    level = models.IntegerField(default=1)
+
     price_per_day = models.IntegerField(default=0)
     
+
     class Meta:
         verbose_name = "Subscription plan"
         verbose_name_plural = "Subscription plans"
 
+    
     def __str__(self):
         return self.name
     
@@ -30,7 +33,7 @@ class Subscription(models.Model):
         INACTIVE = 'IN', 'غیر فعال'
 
     user  = models.OneToOneField(
-        User,
+        "Users.User",
         primary_key=True,
         on_delete=models.CASCADE,
         related_name="user_subscription"
