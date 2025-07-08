@@ -36,3 +36,23 @@ class ResetPasswordRequestOtpAPIView(APIView):
 
 
 
+class ResetPasswordValidateOtpAPIView(APIView):
+    def post(self, request, token):
+        otp = get_object_or_404(OneTimePassword, token=token)
+
+        if otp.status_validation() == False:
+            otp.delete()
+            return Response({'error': 'کد اعتبار سنجی منقضی شده است.'})
+
+        
+        serializer = ResetPasswordOtpValidateSerializer(data=request.data, context={'otp_token': token})
+
+        if request.user.is_authenticated:
+            return Response({"error": "شما قبلاً وارد شده‌اید"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if serializer.is_valid():
+            otp.delete()
+            return Response({'message': 'رمزعبور ریست شد.'}, status=status.HTTP_200_OK)
+        else:
+            otp.delete()
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
