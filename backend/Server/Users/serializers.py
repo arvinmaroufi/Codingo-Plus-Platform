@@ -29,3 +29,4 @@ class UserSerializer(serializers.ModelSerializer):
             instance.user_type = validated_data.get('user_type', instance.user_type)
         
         instance.save()
+        return instance
