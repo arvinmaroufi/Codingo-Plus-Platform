@@ -3,8 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView, Response
 from rest_framework.validators import ValidationError
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import ResetPasswordOtpRequestSerializer, ResetPasswordOtpValidateSerializer
+from .serializers import ResetPasswordOtpRequestSerializer, ResetPasswordOtpValidateSerializer, AccountResetPasswordSerializer
 
 from Otps.models import OneTimePassword
 
@@ -56,3 +57,17 @@ class ResetPasswordValidateOtpAPIView(APIView):
         else:
             otp.delete()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+
+class AccountResetPasswordAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = AccountResetPasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            return Response({'message': 'رمزعبور شما ریست شد.'}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
