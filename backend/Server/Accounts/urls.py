@@ -13,4 +13,5 @@ urlpatterns = [
     path('reset-password-request-otp/', views.ResetPasswordRequestOtpAPIView.as_view(), name="reset_password_request_otp"),
 
     path('reset-password-validate-otp/<str:token>/', views.ResetPasswordValidateOtpAPIView.as_view(), name="reset_password_validate_otp"),
+    path('reset-password/', views.AccountResetPassword.as_view(), name="reset_password"),
 ]
