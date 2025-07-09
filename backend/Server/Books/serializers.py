@@ -138,6 +138,8 @@ class BookSerializer(serializers.ModelSerializer):
     sub_category_slug = serializers.CharField(write_only=True)
     tags_slugs = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     contents = BookContentSerializer(many=True, read_only=True)
+
+    file = serializers.SerializerMethodField()
     
     class Meta:
         model = Book
@@ -205,6 +207,23 @@ class BookSerializer(serializers.ModelSerializer):
         instance.save()
         
         return instance
+
+
+    def get_file(self, obj):
+        request = self.context.get('request')
+
+        user = request.user
+
+        if obj.payment_status == "F":
+            return obj.file
+
+        try:
+            if user.user_subscription.is_active():
+                return obj.file
+        except:
+            pass
+        
+        return None
 
 
 class CommentReplySerializer(serializers.ModelSerializer):
