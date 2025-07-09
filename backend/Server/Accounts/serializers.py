@@ -69,6 +69,8 @@ class ResetPasswordOtpValidateSerializer(serializers.Serializer):
 
             if attrs['password'] != attrs['password_conf']:
                 raise serializers.ValidationError({'error': 'رمزهای عبور با هم تطابق ندارند'})
+            if len(attrs['password']) < 8 or len(attrs['password']) > 16:
+                raise serializers.ValidationError({'error': 'رمزعبور باید بین 8 تا 16 حرف باشد.'})
 
             # All checks passed—apply the new password
             user = reset_password_otp.user
@@ -76,5 +78,28 @@ class ResetPasswordOtpValidateSerializer(serializers.Serializer):
             user.save()
         else:
             raise serializers.ValidationError({'error': 'کد یکبار مصرف فعال نیست'})
+        
+        return attrs
+
+
+
+class AccountResetPasswordSerializer(serializers.Serializer):
+    
+    password = serializers.CharField(max_length=16, min_length=8, required=True)
+    password_conf = serializers.CharField(max_length=16, min_length=8, required=True)
+
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        user = request.user
+
+        if attrs['password'] != attrs['password_conf']:
+            raise serializers.ValidationError({'error': 'رمزهای عبور با هم تطابق ندارند'})
+        
+        if len(attrs['password']) < 8 or len(attrs['password']) > 16:
+            raise serializers.ValidationError({'error': 'رمزعبور باید بین 8 تا 16 حرف باشد.'})
+
+        user.set_password(attrs['password'])
+        user.save()
         
         return attrs
