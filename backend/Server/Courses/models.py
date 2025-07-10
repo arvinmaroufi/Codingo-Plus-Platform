@@ -9,7 +9,7 @@ from Users.models import User
 # -------------------- Categories -------------------- #
 class MainCategory(models.Model):
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
-    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
     icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون دسته بندی')
     description = models.TextField(blank=True, null=True, verbose_name='توضیحات دسته بندی')
     color_code = models.CharField(max_length=7, blank=True, null=True, verbose_name='کد رنگ (HEX)')
@@ -32,7 +32,7 @@ class SubCategory(models.Model):
         verbose_name='دسته بندی والد'
     )
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
-    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
     icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون زیر دسته بندی')
     banner = models.ImageField(
         upload_to='Courses/SubCategory_banners/',
@@ -100,7 +100,7 @@ class Course(models.Model):
 
     # ── Core fields ──
     title = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, primary_key=True)
     short_description = models.CharField(max_length=500, blank=True, null=True)
     description = RichTextUploadingField()
 
