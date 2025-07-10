@@ -19,7 +19,7 @@ class MainCategoryViewSet(viewsets.ViewSet):
         serializer = MainCategorySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, slug):
+    def retrieve(self, request, slug):
         instance = get_object_or_404(MainCategory, slug=slug)
         serilizer = MainCategorySerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -28,7 +28,7 @@ class MainCategoryViewSet(viewsets.ViewSet):
         serializer = MainCategorySerializer(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'massage': 'The main category is created.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'دسته بندی ایجاد شد.'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -38,18 +38,15 @@ class MainCategoryViewSet(viewsets.ViewSet):
         if serializer.is_valid(raise_exception=True):
             self.check_object_permissions(request=request, obj=instance)
             serializer.save()
-            return Response({'massage': 'The main category is updated.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'دسته بندی آپدیت شد.'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, slug):
         instance = get_object_or_404(MainCategory, slug=slug)
-        if request.user == instance.author or request.user.is_staff:
-            self.check_object_permissions(request=request, obj=instance)
-            instance.delete()
-            return Response({'massage': 'The main category is deleted.'}, status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({'error': 'You dont have any fucking permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'دسته بندی اصلی  حذف شد.'}, status=status.HTTP_204_NO_CONTENT)
         
 
 class SubCategoryViewSet(viewsets.ViewSet):
@@ -62,7 +59,7 @@ class SubCategoryViewSet(viewsets.ViewSet):
         serializer = SubCategorySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, slug):
+    def retrieve(self, request, slug):
         instance = get_object_or_404(SubCategory, slug=slug)
         serilizer = SubCategorySerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -106,7 +103,7 @@ class TagViewSet(viewsets.ViewSet):
         serializer = TagSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, slug):
+    def retrieve(self, request, slug):
         instance = get_object_or_404(Tag, slug=slug)
         serilizer = TagSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -150,7 +147,7 @@ class CourseViewSet(viewsets.ViewSet):
         serializer = CourseSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, slug):
+    def retrieve(self, request, slug):
         instance = get_object_or_404(Course, slug=slug)
         serilizer = CourseSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -203,7 +200,7 @@ class CourseContentViewSet(viewsets.ViewSet):
         serializer = CourseContentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(CourseContent, id=pk)
         serilizer = CourseContentSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -259,7 +256,7 @@ class CourseFaqViewSet(viewsets.ViewSet):
         serializer = CourseFaqSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(CourseFaq, id=pk)
         serilizer = CourseFaqSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -315,7 +312,7 @@ class CourseChapterViewSet(viewsets.ViewSet):
         serializer = CourseChapterSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(CourseChapter, id=pk)
         serilizer = CourseChapterSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -370,7 +367,7 @@ class CourseSessionViewSet(viewsets.ViewSet):
         serializer = CourseSessionSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(CourseSession, id=pk)
         serilizer = CourseSessionSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -432,7 +429,7 @@ class CommentViewSet(viewsets.ViewSet):
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(Comment, id=pk)
         serilizer = CommentSerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
@@ -489,7 +486,7 @@ class CommentReplayViewSet(viewsets.ViewSet):
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def retreive(self, request, pk):
+    def retrieve(self, request, pk):
         instance = get_object_or_404(CommentReply, id=pk)
         serilizer = CommentReplySerializer(instance)
         return Response(serilizer.data, status=status.HTTP_200_OK)
