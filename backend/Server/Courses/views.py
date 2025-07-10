@@ -68,7 +68,7 @@ class SubCategoryViewSet(viewsets.ViewSet):
         serializer = SubCategorySerializer(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'massage': 'The main category is created.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'دسته بندی زیر مجموعه ایجاد شد.'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,19 +78,16 @@ class SubCategoryViewSet(viewsets.ViewSet):
         if serializer.is_valid(raise_exception=True):
             self.check_object_permissions(request=request, obj=instance)
             serializer.save()
-            return Response({'massage': 'The main category is updated.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'دسته بندی زیر مجموعه آپدیت شد.'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, slug):
         instance = get_object_or_404(SubCategory, slug=slug)
-        if request.user == instance.author or request.user.is_staff:
-            self.check_object_permissions(request=request, obj=instance)
-            instance.delete()
-            return Response({'massage': 'The main category is deleted.'}, status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({'error': 'You dont have any fucking permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
-        
+        self.check_object_permissions(request=request, obj=instance)
+        instance.delete()
+        return Response({'message': 'دسته بندی زیر مجموعه حذف شد.'}, status=status.HTTP_204_NO_CONTENT)
+    
 
 
 class TagViewSet(viewsets.ViewSet):
