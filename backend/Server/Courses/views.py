@@ -141,12 +141,12 @@ class CourseViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Course.objects.all()
-        serializer = CourseSerializer(queryset, many=True)
+        serializer = CourseSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def retrieve(self, request, slug):
         instance = get_object_or_404(Course, slug=slug)
-        serilizer = CourseSerializer(instance)
+        serilizer = CourseSerializer(instance, context={'request': request})
         return Response(serilizer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
@@ -154,36 +154,33 @@ class CourseViewSet(viewsets.ViewSet):
             serializer = CourseSerializer(data=request.data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                return Response({'massage': 'The main category is created.'}, status=status.HTTP_201_CREATED)
+                return Response({'detail': 'دوره ایجاد شد.'}, status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'errors:': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': "شما برای انجام این عملیات باید اول احراز حویت کنید."}, status=status.HTTP_401_UNAUTHORIZED)
 
     def update(self, request, slug):
         if request.user.is_authenticated:
             instance = get_object_or_404(Course, slug=slug)
+            self.check_object_permissions(request=request, obj=instance)
             serializer = CourseSerializer(instance, data=request.data, context={'request': request}, partial=True)
             if serializer.is_valid(raise_exception=True):
-                self.check_object_permissions(request=request, obj=instance)
                 serializer.save()
-                return Response({'massage': 'The main category is updated.'}, status=status.HTTP_200_OK)
+                return Response({'detail': 'دوره آپدیت شد.'}, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'errors:': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': "شما برای انجام این عملیات باید اول احراز حویت کنید."}, status=status.HTTP_401_UNAUTHORIZED)
 
     def destroy(self, request, slug):
         if request.user.is_authenticated:
             instance = get_object_or_404(Course, slug=slug)
-            if request.user == instance.author or request.user.is_staff:
-                self.check_object_permissions(request=request, obj=instance)
-                instance.delete()
-                return Response({'massage': 'The main category is deleted.'}, status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response({'error': 'You dont have any fucking permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)    
+            self.check_object_permissions(request=request, obj=instance)
+            instance.delete()
+            return Response({'detail': 'دوره حذف شد.'}, status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({'massage': "You need to autherize for performing this action."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': "شما برای انجام این عملیات باید اول احراز حویت کنید."}, status=status.HTTP_401_UNAUTHORIZED)
         
 
         
