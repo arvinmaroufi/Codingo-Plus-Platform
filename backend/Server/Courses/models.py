@@ -3,7 +3,7 @@ from django.db import models
 from ckeditor_uploader.fields import RichTextUploadingField
 
 from Users.models import User
-
+from Accounts.models import UserCourseEnrollment
 
 
 # -------------------- Categories -------------------- #
@@ -95,18 +95,15 @@ class Course(models.Model):
 
     # ── Relations ──
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey('SubCategory', on_delete=models.CASCADE, related_name='categories_courses')
-    tags = models.ManyToManyField('Tag', blank=True, related_name='courses')
+    category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='categories_courses')
+    tags = models.ManyToManyField(Tag, blank=True, related_name='courses', null=True)
 
     # ── Core fields ──
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True, primary_key=True)
-    short_description = models.CharField(max_length=500, blank=True, null=True)
     description = RichTextUploadingField()
 
     # ── Content details ──
-    prerequisites = models.TextField(blank=True, null=True)
-    learning_outcomes = models.TextField(blank=True, null=True)
     duration = models.DurationField(default=timedelta())
 
     # ── Pricing & access ──
@@ -125,16 +122,11 @@ class Course(models.Model):
     # ── Metadata & statuses ──
     language = models.CharField(max_length=2, choices=Language.choices, default=Language.FA)
     level_status = models.CharField(max_length=2, choices=Level.choices, default=Level.INTRO)
-    course_status = models.CharField(max_length=1, choices=Status.choices, default=Status.STARTING_SOON)
-    status = models.CharField(max_length=2, choices=Publish.choices, default=Publish.DRAFT)
-    has_certificate = models.BooleanField(default=False)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.STARTING_SOON)
+    publish_status = models.CharField(max_length=2, choices=Publish.choices, default=Publish.DRAFT)
 
     # ── Engagement stats ──
-    enrollment_count = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    average_rating = models.FloatField(default=0.0)
-    review_count = models.PositiveIntegerField(default=0)
-    is_recommended = models.BooleanField(default=False)
 
     # ── Timestamps ──
     published_date = models.DateTimeField(blank=True, null=True)
@@ -155,6 +147,14 @@ class Course(models.Model):
         hrs, rem = divmod(total, 3600)
         mins, secs = divmod(rem, 60)
         return f"{hrs:02}:{mins:02}:{secs:02}" if hrs else f"{mins:02}:{secs:02}"
+    
+    def enrollment_count(self):
+        enrollments = UserCourseEnrollment.objects.filter(course=self, is_active=True).count()
+        return enrollments
+    
+    def review_count(self):
+        reviews = Comment.objects.filter(course=self).count()
+        return reviews
 
 
 # -------------------- Course Content -------------------- #
