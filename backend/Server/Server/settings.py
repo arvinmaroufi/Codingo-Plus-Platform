@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     # Third party libs
     'ckeditor',
     'rest_framework',
+    'django_filters',
     'django_cleanup.apps.CleanupConfig',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
@@ -168,6 +169,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 
