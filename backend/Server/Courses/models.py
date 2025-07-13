@@ -10,9 +10,7 @@ from Accounts.models import UserCourseEnrollment
 class MainCategory(models.Model):
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
     slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
-    icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون دسته بندی')
-    description = models.TextField(blank=True, null=True, verbose_name='توضیحات دسته بندی')
-    color_code = models.CharField(max_length=7, blank=True, null=True, verbose_name='کد رنگ (HEX)')
+    icon = models.FileField(upload_to='courses/main_category/icons/', verbose_name='آیکون دسته بندی')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')
 
@@ -25,7 +23,7 @@ class MainCategory(models.Model):
 
 
 class SubCategory(models.Model):
-    parent = models.ForeignKey(
+    main_category = models.ForeignKey(
         MainCategory,
         on_delete=models.CASCADE,
         related_name='subcategories',
@@ -33,14 +31,7 @@ class SubCategory(models.Model):
     )
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
     slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
-    icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون زیر دسته بندی')
-    banner = models.ImageField(
-        upload_to='Courses/SubCategory_banners/',
-        null=True,
-        blank=True,
-        verbose_name='بنر زیر دسته بندی'
-    )
-    description = models.TextField(blank=True, null=True, verbose_name='توضیحات زیر دسته بندی')
+    icon = models.FileField(upload_to='courses/sub_category/icons/', verbose_name='آیکون زیر دسته بندی')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
 
