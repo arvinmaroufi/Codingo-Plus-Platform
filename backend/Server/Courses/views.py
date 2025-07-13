@@ -5,7 +5,7 @@ from rest_framework.views import APIView, Response
 
 from .permissions import IsAdminOrReadOnly, CoursePermission, IsCourseTeacherOrAdmin, CourseSessionsPermission, CommentsPermission
 from .serializers import *
-
+from .filters import CourseFilter
 
 
 
@@ -140,9 +140,24 @@ class CourseViewSet(viewsets.ViewSet):
     permission_classes = [CoursePermission]
 
     def list(self, request):
-        queryset = Course.objects.all()
-        serializer = CourseSerializer(queryset, many=True, context={'request': request})
+        # 1. Base queryset
+        qs = Course.objects.all()
+
+        # 2. Apply django-filter filters
+        filtered = CourseFilter(request.GET, queryset=qs)
+        qs = filtered.qs
+
+        # 3. Handle ordering (defaulting to -published_date)
+        order_by = request.query_params.get('order_by', '-published_date')
+        # optional: validate order_by against an allowed list
+        allowed = {'price','-price','published_date','-published_date','views','-views'}
+        if order_by in allowed:
+            qs = qs.order_by(order_by)
+
+        # 4. Serialize and return
+        serializer = CourseSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
     def retrieve(self, request, slug):
         instance = get_object_or_404(Course, slug=slug)
@@ -181,6 +196,10 @@ class CourseViewSet(viewsets.ViewSet):
             return Response({'detail': 'دوره حذف شد.'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'detail': "شما برای انجام این عملیات باید اول احراز حویت کنید."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+        
+
         
 
         
