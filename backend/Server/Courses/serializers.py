@@ -22,8 +22,6 @@ class MainCategorySerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.slug = validated_data.get('slug', instance.slug)
         instance.icon = validated_data.get('icon', instance.icon)
-        instance.description = validated_data.get('description', instance.description)
-        instance.color_code = validated_data.get('color_code', instance.color_code)
         instance.save()
         
         return instance
@@ -31,12 +29,13 @@ class MainCategorySerializer(serializers.ModelSerializer):
 
 class SubCategorySerializer(serializers.ModelSerializer):
 
-    # parent_data = MainCategorySerializer(read_only=True)
+    main_category = MainCategorySerializer(read_only=True)
+    main_category_slug = serializers.CharField(write_only=True)
 
     class Meta:
         model = SubCategory
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'main_category')
 
 
     def create(self, validated_data):
@@ -48,12 +47,17 @@ class SubCategorySerializer(serializers.ModelSerializer):
         if title is None:
             raise serializers.ValidationError({'error': 'عنوان را وارد کنید.'})
 
-        main_category = validated_data.pop('parent', None)
-        if main_category is None:
+        main_category_slug = validated_data.pop('main_category_slug', None)
+        if main_category_slug is not None:
+            try:
+                main_category = MainCategory.objects.get(slug=main_category_slug)
+            except MainCategory.DoesNotExist:
+                raise serializers.ValidationError({'error': 'دسته بندی یافت نشد'})
+        else:
             raise serializers.ValidationError({'error': 'دسته بندی اصلی را وارد کنید.'})
 
         instance = SubCategory.objects.create(
-            parent=main_category,
+            main_category=main_category,
             title=title,
             slug=slug,
             **validated_data
@@ -66,12 +70,18 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        instance.parent = validated_data.get('parent', instance.parent)
         instance.title = validated_data.get('title', instance.title)
         instance.slug = validated_data.get('slug', instance.slug)
         instance.icon = validated_data.get('icon', instance.icon)
-        instance.banner = validated_data.get('banner', instance.banner)
-        instance.description = validated_data.get('description', instance.description)
+
+        main_category_slug = validated_data.pop('main_category_slug', None)
+        if main_category_slug is not None:
+            try:
+                main_category = MainCategory.objects.get(slug=main_category_slug)
+                instance.main_category = main_category
+            except MainCategory.DoesNotExist:
+                raise serializers.ValidationError({'error': 'دسته بندی یافت نشد'})
+        
 
         instance.save()
 
@@ -204,10 +214,10 @@ class CourseSerializer(serializers.ModelSerializer):
         if category_slug is not None:
             try:
                 category = SubCategory.objects.get(slug=category_slug)
+                instance.category = category
             except SubCategory.DoesNotExist:
                 raise serializers.ValidationError({'category_slug': 'دسته بندی یافت نشد.'})
 
-        instance.category = category
 
         tags_data = validated_data.pop('tags', None)
         if tags_data is not None:
