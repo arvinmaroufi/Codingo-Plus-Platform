@@ -124,6 +124,10 @@ class PodcastContentSerializer(serializers.ModelSerializer):
 class PodcastSerializer(serializers.ModelSerializer):
     sub_category_slug = serializers.CharField(write_only=True)
     contents = PodcastContentSerializer(many=True, required=False, read_only=True)
+
+    file = serializers.SerializerMethodField()
+    audio = serializers.SerializerMethodField()
+    video = serializers.SerializerMethodField()
     
     class Meta:
         model = Podcast
@@ -184,6 +188,55 @@ class PodcastSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
+
+    def get_file(self, obj):
+        request = self.context.get('request')
+
+        user = request.user
+
+        if obj.payment_status == "F":
+            return obj.file
+        
+        try:
+            if user.user_subscription.is_active():
+                return obj.file
+        except:
+            pass
+
+        return None
+    
+    def get_audio(self, obj):
+        request = self.context.get('request')
+
+        user = request.user
+
+        if obj.payment_status == "F":
+            return obj.audio
+
+        try:
+            if user.user_subscription.is_active():
+                return obj.audio
+        except:
+            pass
+        
+        return None
+    
+    def get_video(self, obj):
+        request = self.context.get('request')
+
+        user = request.user
+
+        if obj.payment_status == "F":
+            return obj.video
+
+        try:
+            if user.user_subscription.is_active():
+                return obj.video
+        except:
+            pass
+        
+        return None
 
 
 class CommentReplySerializer(serializers.ModelSerializer):

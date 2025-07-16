@@ -4,6 +4,9 @@ from .models import (
     CourseFaq, CourseChapter, CourseSession, Comment, CommentReply
 )
 
+from Accounts.models import UserCourseEnrollment
+from Users.serializers import UserSerializer
+
 
 class MainCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,8 +22,6 @@ class MainCategorySerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.slug = validated_data.get('slug', instance.slug)
         instance.icon = validated_data.get('icon', instance.icon)
-        instance.description = validated_data.get('description', instance.description)
-        instance.color_code = validated_data.get('color_code', instance.color_code)
         instance.save()
         
         return instance
@@ -28,63 +29,59 @@ class MainCategorySerializer(serializers.ModelSerializer):
 
 class SubCategorySerializer(serializers.ModelSerializer):
 
-    main_category_slug = serializers.CharField(write_only=True, required=False)
-
-    parent = MainCategorySerializer(read_only=True)
+    main_category = MainCategorySerializer(read_only=True)
+    main_category_slug = serializers.CharField(write_only=True)
 
     class Meta:
         model = SubCategory
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'parent')
+        read_only_fields = ('created_at', 'updated_at', 'main_category')
 
 
     def create(self, validated_data):
-        
-
         slug = validated_data.pop('slug', None)
         if slug is None:
-            raise serializers.ValidationError({'slug': 'slug is needed.'})
-        
+            raise serializers.ValidationError({'error': 'نامک را وارد کنید.'})
+
         title = validated_data.pop('title', None)
         if title is None:
-            raise serializers.ValidationError({'title': 'title is needed.'})
+            raise serializers.ValidationError({'error': 'عنوان را وارد کنید.'})
 
         main_category_slug = validated_data.pop('main_category_slug', None)
-        if main_category_slug is None:
-            raise serializers.ValidationError({'main_category_slug': 'The main_category_slug is needed.'})
-        
-        try:
-            main_category = MainCategory.objects.get(slug=main_category_slug)
-        except MainCategory.DoesNotExist:
-            raise serializers.ValidationError({'main_category_slug': 'The main category slug is not exists.'})
+        if main_category_slug is not None:
+            try:
+                main_category = MainCategory.objects.get(slug=main_category_slug)
+            except MainCategory.DoesNotExist:
+                raise serializers.ValidationError({'error': 'دسته بندی یافت نشد'})
+        else:
+            raise serializers.ValidationError({'error': 'دسته بندی اصلی را وارد کنید.'})
 
-        query = SubCategory.objects.create(
-            parent=main_category,
+        instance = SubCategory.objects.create(
+            main_category=main_category,
             title=title,
-            slug=slug
+            slug=slug,
             **validated_data
         )
 
-        query.save()
+        instance.save()
 
-        return query
+        return instance
+
 
 
     def update(self, instance, validated_data):
-        main_category_slug = validated_data.pop('main_category_slug', None)
-
-        if main_category_slug:
-            try:
-                main_category = MainCategory.objects.get(slug=main_category_slug)
-                instance.parent = main_category
-            except MainCategory.DoesNotExist:
-                raise serializers.ValidationError({'main_category_slug': 'The main category slug is not exists.'})
-
         instance.title = validated_data.get('title', instance.title)
         instance.slug = validated_data.get('slug', instance.slug)
         instance.icon = validated_data.get('icon', instance.icon)
-        instance.banner = validated_data.get('banner', instance.banner)
-        instance.description = validated_data.get('description', instance.description)
+
+        main_category_slug = validated_data.pop('main_category_slug', None)
+        if main_category_slug is not None:
+            try:
+                main_category = MainCategory.objects.get(slug=main_category_slug)
+                instance.main_category = main_category
+            except MainCategory.DoesNotExist:
+                raise serializers.ValidationError({'error': 'دسته بندی یافت نشد'})
+        
 
         instance.save()
 
@@ -112,7 +109,15 @@ class TagSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
 
-    tags = TagSerializer(many=True)
+    category = SubCategorySerializer(read_only=True)
+    teacher = UserSerializer(read_only=True)
+    tags = TagSerializer(many=True, required=False)
+    is_enrolled = serializers.SerializerMethodField()
+
+    category_slug = serializers.CharField(required=False, write_only=True)
+
+    enrollment_count = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -130,46 +135,50 @@ class CourseSerializer(serializers.ModelSerializer):
             try:
                 category = SubCategory.objects.get(slug=category_slug)
             except SubCategory.DoesNotExist:
-                raise serializers.ValidationError({'category_slug': 'The category_slug is not founded.'})
+                raise serializers.ValidationError({'category_slug': 'دسته بندی یافت نشد.'})
         else:
-            raise serializers.ValidationError({'category_slug': 'The category is needed.'})
+            raise serializers.ValidationError({'category_slug': 'دسته بندی را وارد کنید.'})
+            
         
         slug = validated_data.pop('slug', None)
         if slug is None:
-            raise serializers.ValidationError({'slug': 'slug is needed.'})
+            raise serializers.ValidationError({'slug': 'اسلاگ را وارد کنید.'})
         
         title = validated_data.pop('title', None)
         if title is None:
-            raise serializers.ValidationError({'title': 'title is needed.'})
+            raise serializers.ValidationError({'title': 'عنموان اجباری است.'})
         
         level_status = validated_data.pop('level_status', None)
         if level_status is None:
-            raise serializers.ValidationError({'level_status': 'level_status is needed.'})
+            raise serializers.ValidationError({'level_status': 'سطح دوره را وارد کنید.'})
         
         payment_status = validated_data.pop('payment_status', None)
         if payment_status is None:
-            raise serializers.ValidationError({'payment_status': 'payment_status is needed.'})
+            raise serializers.ValidationError({'payment_status': 'نوع پرداخت را وارد کنید.'})
         
         status = validated_data.pop('status', None)
         if status is None:
-            raise serializers.ValidationError({'status': 'status is needed.'})
+            raise serializers.ValidationError({'status': 'وضعیت را وارد کنید.'})
         
         language = validated_data.pop('language', None)
         if language is None:
-            raise serializers.ValidationError({'language': 'language is needed.'})
+            raise serializers.ValidationError({'language': 'زبان را وارد کنید.'})
         
 
         price = validated_data.pop('price', None)
         
         if payment_status == "P" and price is None:
-            raise serializers.ValidationError({'price': 'The price is required when you want to make the course premuim'})
-            
-        validated_data['is_recommended'] = False
+            raise serializers.ValidationError({'price': 'اگر نوع پرداخت رایگان نباشد باید قیمت آن را وارد کنید.'})
 
         query = Course.objects.create(
+            slug=slug,
+            title=title,
+            price=price,
             teacher=teacher,
             category=category,
-            **validated_data
+            language=language,
+            level_status=level_status,
+            payment_status=payment_status,
         )
         
         query.save()
@@ -178,25 +187,15 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        request = self.context.get('request')
-
-        if request.user.is_staff:
-            instance.is_recommended = validated_data.get('is_recommended', instance.is_recommended)
-        
         # Core fields
         instance.slug = validated_data.get('slug', instance.slug)
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
-        instance.short_description = validated_data.get('short_description', instance.short_description)
-
-        # Contant details
-        instance.prerequisites = validated_data.get('prerequisites', instance.prerequisites)
-        instance.learning_outcomes = validated_data.get('learning_outcomes', instance.learning_outcomes)
-        instance.duration = validated_data.get('duration', instance.duration)
+        instance.language = validated_data.get('language', instance.language)
 
         # Pricing
         instance.price = validated_data.get('price', instance.price)
-        instance.payment_ststus = validated_data.get('payment_ststus', instance.payment_ststus)
+        instance.payment_status = validated_data.get('payment_status', instance.payment_status)
 
         # Media
         instance.poster = validated_data.get('poster', instance.poster)
@@ -206,8 +205,7 @@ class CourseSerializer(serializers.ModelSerializer):
         # Metadata 
         instance.status = validated_data.get('status', instance.status)
         instance.level_status = validated_data.get('level_status', instance.level_status)
-        instance.course_status = validated_data.get('course_status', instance.course_status)
-        instance.has_certificate = validated_data.get('has_certificate', instance.has_certificate)
+        instance.publish_status = validated_data.get('publish_status', instance.publish_status)
 
         # Timestamps
         instance.published_date = validated_data.get('published_date', instance.published_date)
@@ -216,8 +214,10 @@ class CourseSerializer(serializers.ModelSerializer):
         if category_slug is not None:
             try:
                 category = SubCategory.objects.get(slug=category_slug)
+                instance.category = category
             except SubCategory.DoesNotExist:
-                raise serializers.ValidationError({'category_slug': 'The category_slug is not founded.'})
+                raise serializers.ValidationError({'category_slug': 'دسته بندی یافت نشد.'})
+
 
         tags_data = validated_data.pop('tags', None)
         if tags_data is not None:
@@ -226,6 +226,20 @@ class CourseSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+
+    def get_is_enrolled(self, obj):
+        request = self.context.get('request')
+
+        if UserCourseEnrollment.objects.filter(user=request.user, course=obj, is_active=True).exists():
+            return True
+        
+        return False
+    
+    def get_enrollment_count(self, obj):
+        return obj.enrollment_count()
+    
+    def get_review_count(self, obj):
+        return obj.review_count()
 
 
 class CourseContentSerializer(serializers.ModelSerializer):
@@ -362,6 +376,11 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
     chapter_id = serializers.CharField(write_only=True, required=False)
 
+    is_active = serializers.SerializerMethodField()
+    video = serializers.SerializerMethodField()
+    file_link = serializers.SerializerMethodField()
+    resources = serializers.SerializerMethodField()
+
     class Meta:
         model = CourseSession
         fields = '__all__'
@@ -418,6 +437,23 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
         return instance
     
+    def get_is_active(self, obj):
+        request = self.context.get('request')
+
+        if not obj.is_paid:
+            return True
+
+        return UserCourseEnrollment.objects.filter(user=request.user, course=obj.chapter.course, is_active=True).exists()
+
+    def get_video(self, obj):
+        return obj.video if self.get_is_active(obj) else None
+
+    def get_file_link(self, obj):
+        return obj.file_link if self.get_is_active(obj) else None
+
+    def get_resources(self, obj):
+        return obj.resources if self.get_is_active(obj) else None
+
 
 
 

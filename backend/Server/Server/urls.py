@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from . import settings
+from django.conf.urls.static import static
 
 
 
@@ -7,6 +9,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('courses/', include('Courses.urls', namespace="Courses")),
     path('profiles/', include('Profiles.urls', namespace="Profiles")),
+    path('accounts/', include('Accounts.urls', namespace="Accounts")),
+    path('users/', include('Users.urls', namespace="Users")),
     path('courses/', include('Courses.urls')),
     path('tickets/', include('Tickets.urls')),
     path('blogs/', include('Blogs.urls')),
@@ -14,6 +18,7 @@ urlpatterns = [
     path('articles/', include('Articles.urls')),
     path('books/', include('Books.urls')),
     path('podcasts/', include('Podcasts.urls')),
+    path('subscriptions/', include('Subscriptions.urls')),
     # ckeditor_editor url
     path('ckeditor/', include('ckeditor_uploader.urls')),
-]
+]   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,11 +1,11 @@
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 import { JWT } from "next-auth/jwt";
 import { UserType } from "@/types/next-auth";
 
-
-
+// shape of your JWT payload
 interface TokenPayload {
   id: number;
   is_admin: boolean;
@@ -18,11 +18,11 @@ interface TokenPayload {
   exp: number;
 }
 
-
-
 export const authOptions: NextAuthOptions = {
   providers: [
-    // 1) Your existing phone/password creds
+    // ----------------------------------------------------------------------
+    // 1) phone + password
+    // ----------------------------------------------------------------------
     CredentialsProvider({
       id: "credentials",
       name: "Credentials",
@@ -31,6 +31,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        if (!credentials) return null;
         const res = await fetch(
           `${process.env.DJANGO_API_URL}/auth/login-password/`,
           {
@@ -41,7 +42,6 @@ export const authOptions: NextAuthOptions = {
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Invalid login");
-
         const payload = jwtDecode<TokenPayload>(data.access);
         return {
           id: payload.id,
@@ -59,9 +59,11 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
-    // 2) New “otp” provider that seeds NextAuth from your reg-validate tokens
+    // ----------------------------------------------------------------------
+    // 2) register-OTP provider
+    // ----------------------------------------------------------------------
     CredentialsProvider({
-      id: "otp",
+      id: "register-otp",
       name: "OTP",
       credentials: {
         accessToken: { label: "Access Token", type: "text" },
@@ -88,26 +90,61 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+
+    // ----------------------------------------------------------------------
+    // 3) login-OTP provider
+    // ----------------------------------------------------------------------
+    CredentialsProvider({
+      id: "login-otp",
+      name: "Login OTP",
+      credentials: {
+        token: { label: "OTP Token", type: "text" },
+        code: { label: "OTP Code", type: "text" },
+      },
+      async authorize(credentials) {
+        const otpToken = credentials?.token;
+        const otpCode  = credentials?.code;
+        if (!otpToken || !otpCode) return null;
+
+        // hit your login-validate endpoint
+        const res = await fetch(
+          `${process.env.DJANGO_API_URL}/auth/login-validate-otp/${otpToken}/`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: otpCode }),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Invalid OTP");
+        const payload = jwtDecode<TokenPayload>(data.access);
+
+        return {
+          id: payload.id,
+          phone: payload.phone,
+          email: payload.email,
+          full_name: payload.full_name,
+          username: payload.username,
+          user_type: payload.user_type,
+          profile: payload.profile,
+          is_admin: payload.is_admin,
+          accessToken: data.access,
+          refreshToken: data.refresh,
+          accessTokenExpires: payload.exp * 1000,
+        };
+      },
+    }),
   ],
 
   session: { strategy: "jwt", maxAge: 60 * 60 },
 
   callbacks: {
     async jwt({ token, user }) {
-      // on first sign-in from either provider
-      if (user) {
-        return {
-          ...token,
-          ...user,
-        } as JWT;
-      }
-
-      // when token is still valid, just return it
+      if (user) return { ...token, ...user } as JWT;
       if (Date.now() < (token.accessTokenExpires as number)) {
         return token;
       }
-
-      // otherwise refresh
+      // auto‐refresh
       try {
         const res = await fetch(
           `${process.env.DJANGO_API_URL}/auth/refresh/`,
@@ -119,7 +156,6 @@ export const authOptions: NextAuthOptions = {
         );
         const data = await res.json();
         if (!res.ok) throw data;
-
         const newPayload = jwtDecode<TokenPayload>(data.access);
         return {
           ...token,
@@ -142,7 +178,7 @@ export const authOptions: NextAuthOptions = {
         user_type: token.user_type as UserType,
         profile: token.profile as string,
         is_admin: token.is_admin as boolean,
-        name: session.user?.name ?? token.email as string,
+        name: token.full_name as string,
       };
       session.accessToken = token.accessToken as string;
       return session;

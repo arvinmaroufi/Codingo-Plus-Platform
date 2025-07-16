@@ -3,16 +3,14 @@ from django.db import models
 from ckeditor_uploader.fields import RichTextUploadingField
 
 from Users.models import User
-
+from Accounts.models import UserCourseEnrollment
 
 
 # -------------------- Categories -------------------- #
 class MainCategory(models.Model):
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
-    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')
-    icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون دسته بندی')
-    description = models.TextField(blank=True, null=True, verbose_name='توضیحات دسته بندی')
-    color_code = models.CharField(max_length=7, blank=True, null=True, verbose_name='کد رنگ (HEX)')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
+    icon = models.FileField(upload_to='courses/main_category/icons/', verbose_name='آیکون دسته بندی')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ به‌روزرسانی')
 
@@ -25,22 +23,15 @@ class MainCategory(models.Model):
 
 
 class SubCategory(models.Model):
-    parent = models.ForeignKey(
+    main_category = models.ForeignKey(
         MainCategory,
         on_delete=models.CASCADE,
         related_name='subcategories',
         verbose_name='دسته بندی والد'
     )
     title = models.CharField(max_length=100, unique=True, verbose_name='عنوان دسته بندی')
-    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک')
-    icon = models.FileField(upload_to='Courses/SubCategory_icons/', verbose_name='آیکون زیر دسته بندی')
-    banner = models.ImageField(
-        upload_to='Courses/SubCategory_banners/',
-        null=True,
-        blank=True,
-        verbose_name='بنر زیر دسته بندی'
-    )
-    description = models.TextField(blank=True, null=True, verbose_name='توضیحات زیر دسته بندی')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='نامک', primary_key=True)
+    icon = models.FileField(upload_to='courses/sub_category/icons/', verbose_name='آیکون زیر دسته بندی')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='تاریخ بروزرسانی')
 
@@ -95,18 +86,15 @@ class Course(models.Model):
 
     # ── Relations ──
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey('SubCategory', on_delete=models.CASCADE, related_name='categories_courses')
-    tags = models.ManyToManyField('Tag', blank=True, related_name='courses')
+    category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='categories_courses')
+    tags = models.ManyToManyField(Tag, blank=True, related_name='courses', null=True)
 
     # ── Core fields ──
     title = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=200, unique=True)
-    short_description = models.CharField(max_length=500, blank=True, null=True)
+    slug = models.SlugField(max_length=200, unique=True, primary_key=True)
     description = RichTextUploadingField()
 
     # ── Content details ──
-    prerequisites = models.TextField(blank=True, null=True)
-    learning_outcomes = models.TextField(blank=True, null=True)
     duration = models.DurationField(default=timedelta())
 
     # ── Pricing & access ──
@@ -125,16 +113,11 @@ class Course(models.Model):
     # ── Metadata & statuses ──
     language = models.CharField(max_length=2, choices=Language.choices, default=Language.FA)
     level_status = models.CharField(max_length=2, choices=Level.choices, default=Level.INTRO)
-    course_status = models.CharField(max_length=1, choices=Status.choices, default=Status.STARTING_SOON)
-    status = models.CharField(max_length=2, choices=Publish.choices, default=Publish.DRAFT)
-    has_certificate = models.BooleanField(default=False)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.STARTING_SOON)
+    publish_status = models.CharField(max_length=2, choices=Publish.choices, default=Publish.DRAFT)
 
     # ── Engagement stats ──
-    enrollment_count = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    average_rating = models.FloatField(default=0.0)
-    review_count = models.PositiveIntegerField(default=0)
-    is_recommended = models.BooleanField(default=False)
 
     # ── Timestamps ──
     published_date = models.DateTimeField(blank=True, null=True)
@@ -155,6 +138,14 @@ class Course(models.Model):
         hrs, rem = divmod(total, 3600)
         mins, secs = divmod(rem, 60)
         return f"{hrs:02}:{mins:02}:{secs:02}" if hrs else f"{mins:02}:{secs:02}"
+    
+    def enrollment_count(self):
+        enrollments = UserCourseEnrollment.objects.filter(course=self, is_active=True).count()
+        return enrollments
+    
+    def review_count(self):
+        reviews = Comment.objects.filter(course=self).count()
+        return reviews
 
 
 # -------------------- Course Content -------------------- #

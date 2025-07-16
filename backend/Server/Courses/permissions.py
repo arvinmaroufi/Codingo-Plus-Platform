@@ -27,11 +27,12 @@ class CoursePermission(BasePermission):
             return True
         
         if request.method == "POST":
-            if request.user.type == "TE":
+            if request.user.user_type == "TE":
                 return True
             return False
         
-        return False
+        if request.user.user_type == "TE" or request.user.is_staff:
+            return True
     
         
     def has_object_permission(self, request, view, obj):
@@ -44,6 +45,7 @@ class CoursePermission(BasePermission):
             return False
         
         if request.method == "PUT":
+            print('test2')
             if request.user.is_staff or request.user == obj.teacher:
                 return True
             return False
@@ -60,7 +62,7 @@ class IsCourseTeacherOrAdmin(BasePermission):
             return True
         
         if request.method == "POST":
-            if request.user.is_staff or request.user.type == "TE":
+            if request.user.is_staff or request.user.user_type == "TE":
                 return True
             return False
         

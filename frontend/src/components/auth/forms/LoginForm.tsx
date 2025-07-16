@@ -1,116 +1,145 @@
-"use client"
-import { useState, FormEvent } from "react"
-import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/Input"
-import { cn } from "@/lib/utils"
+"use client";
+
+import { useState, useEffect, FormEvent } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { PhoneInput } from "./PhoneInput";
+import { ModeSwitch } from "./ModeSwitch";
+import { PasswordLoginForm } from "./PasswordLoginForm";
+import { OTPLoginForm } from "./OTPLoginForm";
 
 
 
 export default function LoginForm() {
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [errorMsg, setErrorMsg] = useState("")
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const params = useSearchParams();
+  const callbackUrl = params.get("callbackUrl") || "/";
 
-  const router = useRouter()
-  const params = useSearchParams()
-  const callbackUrl = params.get("callbackUrl") || "/"
+  // --- shared state ---
+  const [phone, setPhone] = useState("");
+  const [canProceed, setCanProceed] = useState(false);
+  const [mode, setMode] = useState<"default" | "password" | "otp">("default");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setErrorMsg("")
-    setLoading(true)
+  // --- password state ---
+  const [password, setPassword] = useState("");
+
+  // --- OTP state ---
+  const [otpToken, setOtpToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [devOtp, setDevOtp] = useState("");
+
+  // enable only when phone length ≥11
+  useEffect(() => {
+    setCanProceed(/^\d{11,}$/.test(phone.trim()));
+  }, [phone]);
+
+  // 1) password login
+  async function handlePasswordLogin(e: FormEvent) {
+    e.preventDefault();
+    setErrorMsg(""); setLoading(true);
 
     const res = await signIn("credentials", {
       redirect: false,
-      phone,
-      password,
+      phone, password,
       callbackUrl,
-    })
+    });
+    setLoading(false);
+    if (res?.error) return setErrorMsg(res.error);
+    router.push(res?.url || callbackUrl);
+  }
 
-    setLoading(false)
-    if (res?.error) return setErrorMsg(res.error)
-    router.push(res?.url || callbackUrl)
+  // 2) request OTP
+  async function handleRequestOtp() {
+    setErrorMsg(""); setLoading(true);
+
+    try {
+      const res = await fetch(
+        `${process.env.DJANGO_API_URL}/auth/login-request-otp/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone }),
+        }
+      );
+      const data = await res.json();
+      setLoading(false);
+
+      if (!res.ok) {
+        setErrorMsg(data.detail.message || "خطا در ارسال کد OTP");
+        return;
+      }
+      console.log(data.detail);
+      setOtpToken(data.detail.token);
+      setDevOtp(data.detail.code || "");
+      setMode("otp");
+    } catch {
+      setLoading(false);
+      setErrorMsg("خطای شبکه، دوباره تلاش کنید");
+    }
+  }
+
+  // 3) verify OTP
+  async function handleVerifyOtp(e: FormEvent) {
+    e.preventDefault();
+    setErrorMsg(""); setLoading(true);
+
+    const res = await signIn("login-otp", {
+      redirect: false,
+      token: otpToken,
+      code: otpCode,
+      callbackUrl,
+    });
+    setLoading(false);
+    if (res?.error) return setErrorMsg(res.error);
+    router.push(res?.url || callbackUrl);
   }
 
   return (
-    <form className="my-8" onSubmit={handleSubmit}>
+    <div className="w-full max-w-md mx-auto">
+      {/* PHONE */}
+      <PhoneInput phone={phone} setPhone={setPhone} />
+
+      {/* MODE SWITCH OR ERROR */}
+      {mode === "default" && (
+        <ModeSwitch
+          mode={mode}
+          canProceed={canProceed}
+          loading={loading}
+          onOtpRequest={handleRequestOtp}
+          onPasswordChoose={() => {
+            setMode("password");
+            setErrorMsg("");
+          }}
+        />
+      )}
       {errorMsg && (
         <p className="mb-4 text-sm text-red-600">{errorMsg}</p>
       )}
 
-      <LabelInputContainer className="mb-4">
-        <Label htmlFor="phone">شماره تلفن</Label>
-        <Input
-          id="phone"
-          type="tel"
-          placeholder="0912123456789"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
+      {/* PASSWORD */}
+      {mode === "password" && (
+        <PasswordLoginForm
+          password={password}
+          setPassword={setPassword}
+          loading={loading}
+          onSubmit={handlePasswordLogin}
         />
-      </LabelInputContainer>
+      )}
 
-      <LabelInputContainer className="mb-4">
-        <Label htmlFor="password">رمز</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+      {/* OTP */}
+      {mode === "otp" && (
+        <OTPLoginForm
+          phone={phone}
+          devOtp={devOtp}
+          otpCode={otpCode}
+          setOtpCode={setOtpCode}
+          loading={loading}
+          onSubmit={handleVerifyOtp}
         />
-      </LabelInputContainer>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-base-dark to-primary-light font-medium text-highlight-text-light shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-base-light dark:from-base-light dark:to-primary-dark dark:text-main-text-light dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
-      >
-        {loading ? "ورود…" : "ورود"}
-        <BottomGradient />
-      </button>
-
-      <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-primary-dark" />
-
-      <div className="flex flex-row gap-10">
-        <button
-            className="group/btn shadow-input relative flex h-10 w-full justify-center items-center space-x-2 rounded-md bg-secondary-light px-4 font-medium text-main-text-light dark:bg-secondary-dark dark:shadow-[0px_0px_1px_1px_#262626]"
-            type="submit"
-        >
-            <span className="text-sm font-bold text-center text-main-text-light">ثبت نام</span>
-            <BottomGradient />
-        </button>
-        <button
-            className="group/btn shadow-input relative flex h-10 w-full justify-center items-center space-x-2 rounded-md bg-secondary-light px-4 font-medium text-main-text-light dark:bg-secondary-dark dark:shadow-[0px_0px_1px_1px_#262626]"
-            type="submit"
-        >
-            <span className="text-sm font-bold text-center text-main-text-light">بازیابی رمزعبور</span>
-            <BottomGradient />
-        </button>
-      </div>
-    </form>
-  )
+      )}
+    </div>
+  );
 }
-
-const BottomGradient = () => (
-  <>
-    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-primary-dark dark:via-primary-light to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-base-dark dark:via-base-light to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-  </>
-)
-
-const LabelInputContainer = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
-)

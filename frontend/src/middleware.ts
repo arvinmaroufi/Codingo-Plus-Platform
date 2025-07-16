@@ -5,21 +5,18 @@ import type { NextRequest } from "next/server";
 import { UserType } from "@/types/next-auth";
 
 /** Public‐only pages: signed-in users should never see */
-const PUBLIC_PAGES = [
+const Auth_Pages = [
   "/auth/login",
   "/auth/register",
-  "/auth/reset-password",
-  "/courses",
-  "/about",
-  "/blogs",
 ];
+
 
 /** Role‐based protected sections */
 const ROLE_ROUTES: Record<UserType, string[]> = {
-  AD: ["admin"],
-  TE: ["teachers/dashboard"],
-  ST: ["dashboard"],
-  SU: ["supporters/dashboard"],
+  AD: ["admin", "courses"],
+  TE: ["teachers/dashboard", "courses"],
+  ST: ["dashboard", "courses"],
+  SU: ["supporters/dashboard", "courses"],
 };
 
 export async function middleware(req: NextRequest) {
@@ -42,7 +39,7 @@ export async function middleware(req: NextRequest) {
   });
 
   // 1) Public pages: if already signed in, bounce to dashboard
-  if (PUBLIC_PAGES.some((p) => pathname === p)) {
+  if (Auth_Pages.some((p) => pathname === p)) {
     if (token) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
