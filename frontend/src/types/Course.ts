@@ -1,21 +1,4 @@
-interface MainCategory {
-  title: string;
-  slug: string;
-  icon: string | null;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface SubCategory {
-  parent: MainCategory;
-  slug: string;
-  title: string;
-  icon: string;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-};
+import SubCategory from "./sub-category";
 
 interface Teacher {
   username: string;
