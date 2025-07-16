@@ -1,82 +1,116 @@
 export const courseFiltersData = {
     courseStatus: [
         {
+            id: 1,
             name: "تکمیل شده",
-            value: "C"
+            value: "C",
+            is_active: false,
         },
         {
+            id: 2,
             name: "درحال برگزاری",
-            value: "I"
+            value: "I",
+            is_active: false,
         },
         {
+            id: 3,
             name: "شروع به زودی",
-            value: "S"
+            value: "S",
+            is_active: false,
         }
     ],
     levelStatus: [
         {
+            id: 1,
             name: "مقدماتی",
-            value: "IN"
+            value: "IN",
+            is_active: false,
         },
         {
+            id: 2,
             name: "متوسط",
-            value: "IM"
+            value: "IM",
+            is_active: false,
         },
         {
+            id: 3,
             name: "پیشرفته",
-            value: "AD"
+            value: "AD",
+            is_active: false,
         },
         {
+            id: 4,
             name: "مقدماتی تا پیشرفته",
-            value: "IA"
+            value: "IA",
+            is_active: false,
         }
     ],
     paymentStatus: [
         {
+            id: 1,
             name: "پولی",
-            value: "P"
+            value: "P",
+            is_active: false,
         },
         {
+            id: 2,
             name: "رایگان",
-            value: "F"
+            value: "F",
+            is_active: false,
         }
     ],
     languageStatus: [
         {
+            id: 1,
             name: "فارسی",
-            value: "FA"
+            value: "FA",
+            is_active: false,
         },
         {
+            id: 2,
             name: "انگلیسی",
-            value: "EN"
+            value: "EN",
+            is_active: false,
         }
     ],
     ordering: [
         {
+            id: 1,
             name: "کمترین قیمت",
-            value: "price"
+            value: "price",
+            is_active: false,
         },
         {
+            id: 2,
             name: "بیشترین قیمت",
-            value: "-price"
+            value: "-price",
+            is_active: false,
         },
 
         {
+            id: 3,
             name: "پربازدید ترین",
-            value: "views"
+            value: "views",
+            is_active: false,
         },
         {
+            id: 4,
             name: "کم بازدید ترین",
-            value: "-views"
+            value: "-views",
+            is_active: false,
         },
 
         {
+            id: 5,
             name: "جدید تیرن",
-            value: "published_date"
+            value: "published_date",
+            is_active: false,
         },
         {
+            id: 6,
             name: "قدیمی ترین",
-            value: "-published_date"
+            value: "-published_date",
+            is_active: false,
         },
     ]
 }
