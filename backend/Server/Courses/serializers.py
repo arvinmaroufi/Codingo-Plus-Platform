@@ -26,16 +26,15 @@ class MainCategorySerializer(serializers.ModelSerializer):
         
         return instance
 
-
 class SubCategorySerializer(serializers.ModelSerializer):
 
-    main_category = MainCategorySerializer(read_only=True)
+    main_category = serializers.SlugRelatedField(slug_field="title", read_only=True)
     main_category_slug = serializers.CharField(write_only=True)
 
     class Meta:
         model = SubCategory
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'main_category')
+        read_only_fields = ('created_at', 'updated_at')
 
 
     def create(self, validated_data):
@@ -86,6 +85,20 @@ class SubCategorySerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    sub_categories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MainCategory
+        fields = "__all__"
+
+    def get_sub_categories(self, obj):
+        queryset = SubCategory.objects.filter(main_category=obj)
+        serializer = SubCategorySerializer(queryset, many=True)
+        return serializer.data
+    
 
 
 class TagSerializer(serializers.ModelSerializer):
