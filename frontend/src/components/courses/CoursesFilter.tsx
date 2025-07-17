@@ -62,6 +62,17 @@ export default function CoursesFilter() {
     );
   };
 
+  const setPaymentStatusFilter = (id: number) => {
+    setPaymentStatus(prev =>
+      prev.map(item => ({
+        ...item,
+        // if it’s the clicked one, flip its current flag,
+        // otherwise always turn others off
+        is_active: item.id === id ? !item.is_active : false
+      }))
+    );
+  };
+
   
   useEffect(() => {
     async function fetchCategories() {
@@ -131,7 +142,7 @@ export default function CoursesFilter() {
           <div className="flex justify-evenly">
             {paymentStatus.map((item) => (
               <div key={item.name} className="p-2">
-                <HoverButton title={item.name} is_active={item.is_active}/>
+                <HoverButton title={item.name} is_active={item.is_active} handleClick={() => setPaymentStatusFilter(item.id)}/>
               </div>
             ))}
           </div>
