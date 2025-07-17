@@ -36,7 +36,7 @@ export default function CoursesFilter() {
   const [ courseStatus, setCourseStatus ] = useState(courseFiltersData.courseStatus);
   const [ levelStatus, setLevelStatus ] = useState(courseFiltersData.levelStatus);
   const [ paymentStatus, setPaymentStatus ] = useState(courseFiltersData.paymentStatus);
-  const [ languageStatus, setLanguageStatus ] = useState(courseFiltersData.languageStatus);
+  const [ language, setLanguage ] = useState(courseFiltersData.languageStatus);
   const [ ordering, setOrdering ] = useState(courseFiltersData.ordering);
 
 
@@ -64,6 +64,17 @@ export default function CoursesFilter() {
 
   const setPaymentStatusFilter = (id: number) => {
     setPaymentStatus(prev =>
+      prev.map(item => ({
+        ...item,
+        // if it’s the clicked one, flip its current flag,
+        // otherwise always turn others off
+        is_active: item.id === id ? !item.is_active : false
+      }))
+    );
+  };
+
+  const setLanguageFilter = (id: number) => {
+    setLanguage(prev =>
       prev.map(item => ({
         ...item,
         // if it’s the clicked one, flip its current flag,
@@ -151,9 +162,9 @@ export default function CoursesFilter() {
         <div className="flex justify-evenly gap-6 flex-col border-primary-light/[0.2] dark:border-primary-dark/[0.2] border-t-2 rounded-sm">
           <span className="text-lg font-bold text-center text-main-text-light dark:text-main-text-dark p-2 mt-3">زبان</span>
           <div className="flex justify-evenly">
-            {languageStatus.map((item) => (
+            {language.map((item) => (
               <div key={item.name} className="p-2">
-                <HoverButton title={item.name} is_active={item.is_active}/>
+                <HoverButton title={item.name} is_active={item.is_active} handleClick={() => setLanguageFilter(item.id)}/>
               </div>
             ))}
           </div>
