@@ -33,11 +33,23 @@ export default function CoursesFilter() {
   const [ categories, SetCategories ] = useState<Categories[]>([]);
 
   // Filters states
-  const [ courseStatus, setcourseStatus ] = useState(courseFiltersData.courseStatus);
+  const [ courseStatus, setCourseStatus ] = useState(courseFiltersData.courseStatus);
   const [ levelStatus, setLevelStatus ] = useState(courseFiltersData.levelStatus);
   const [ paymentStatus, setPaymentStatus ] = useState(courseFiltersData.paymentStatus);
   const [ languageStatus, setLanguageStatus ] = useState(courseFiltersData.languageStatus);
   const [ ordering, setOrdering ] = useState(courseFiltersData.ordering);
+
+
+  const setCourseStatusFilter = (id: number) => {
+    setCourseStatus(prev =>
+      prev.map(item => ({
+        ...item,
+        // if it’s the clicked one, flip its current flag,
+        // otherwise always turn others off
+        is_active: item.id === id ? !item.is_active : false
+      }))
+    );
+  };
 
   
   useEffect(() => {
@@ -47,9 +59,7 @@ export default function CoursesFilter() {
       SetCategories(fetchedData);
     }
     fetchCategories();
-  }, [])
-  
-  console.log(categories)
+  }, []);
 
   return (
     <div className="flex flex-col justify-evenly gap-3">
@@ -87,7 +97,9 @@ export default function CoursesFilter() {
           <span className="text-lg font-bold text-center text-main-text-light dark:text-main-text-dark p-2 mt-3">وضعیت دوره</span>
           <div className="flex justify-evenly flex-wrap gap-4">
             {courseStatus.map((item) => (
-              <HoverButton title={item.name} is_active={item.is_active}/>
+              <div className="p-2" key={item.id}>
+                <HoverButton title={item.name} is_active={item.is_active} handleClick={() => setCourseStatusFilter(item.id)}/>
+              </div>
             ))}
           </div>
         </div>
