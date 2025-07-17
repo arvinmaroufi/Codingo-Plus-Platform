@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'Podcasts.apps.PodcastsConfig',
     'Accounts.apps.AccountsConfig',
     'Subscriptions.apps.SubscriptionsConfig',
+    'Carts.apps.CartsConfig',
 ]
 
 MIDDLEWARE = [
