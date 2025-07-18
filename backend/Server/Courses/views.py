@@ -542,3 +542,12 @@ class CommentReplayViewSet(viewsets.ViewSet):
         queryset = CommentReply.objects.filter(comment=instance)
         serializer = CommentReplySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class CategoriesList(APIView):
+
+    def get(self, request):
+        queryset = MainCategory.objects.all()
+        serializer = CategorySerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

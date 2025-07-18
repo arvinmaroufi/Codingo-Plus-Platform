@@ -34,6 +34,8 @@ const config: Config = {
         'success-text-dark': '#B0DB9C',
         'error-dark': '#8E1616',
         'error-text-dark': '#F7374F',
+        'selected-dark': '#9ECAD6',
+        'hover-dark': '#113F67',
 
         // Light theme colors
         'base-light': '#EAF1F0',
@@ -45,19 +47,19 @@ const config: Config = {
         'success-text-light': '#169976',
         'error-light': '#F15A59',
         'error-text-light': '#8E1616',
+        'selected-light': '#3D74B6',
+        'hover-light': '#63C8FF',
       },
       animation: {
-        spotlight: "spotlight 2s ease .75s 1 forwards",
+        shimmer: "shimmer 2s linear infinite",
       },
       keyframes: {
-        spotlight: {
-          "0%": {
-            opacity: 0,
-            transform: "translate(-72%, -62%) scale(0.5)",
+        shimmer: {
+          from: {
+            backgroundPosition: "0 0",
           },
-          "100%": {
-            opacity: 1,
-            transform: "translate(-50%,-40%) scale(1)",
+          to: {
+            backgroundPosition: "-200% 0",
           },
         },
       },

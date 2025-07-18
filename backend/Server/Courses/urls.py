@@ -1,6 +1,5 @@
 from django.urls import path, include
-from . import routers
-
+from . import routers, views
 
 
 app_name = "Courses"
@@ -29,4 +28,5 @@ urlpatterns = [
     path('course-chapters/', include(course_chapters_router.get_urls())),
     path('comments/', include(comments_router.get_urls())),
     path('comment-replays/', include(comment_replays_router.get_urls())),
+    path('categories/', views.CategoriesList.as_view())
 ]
