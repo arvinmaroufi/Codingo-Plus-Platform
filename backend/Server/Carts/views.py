@@ -4,9 +4,9 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.views import Response, APIView
 from rest_framework import status
 
-from .models import Coupon
-from .serializers import CouponSerializer
-from .permissions import IsCouponOwnerOrAdmin
+from .models import Coupon, Cart
+from .serializers import CouponSerializer, CartSerializer
+from .permissions import IsCouponOwnerOrAdmin, IsCartOwnerOrAdmin
 
 
 
@@ -49,3 +49,49 @@ class CouponViewSet(ViewSet):
         self.check_object_permissions(request, coupon)
         coupon.delete()
         return Response({'message': 'The Coupon is deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class CartViewSet(ViewSet):
+    permission_classes = [IsCartOwnerOrAdmin]
+    
+    def list(self, request):
+        if request.user.is_staff:
+            queryset = Cart.objects.all()
+        else:
+            queryset = Cart.objects.filter(user=request.user)
+        serializer = CartSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        cart = get_object_or_404(Cart, pk=pk)
+        self.check_object_permissions(request, cart)
+        serializer = CartSerializer(cart, context={'request': request})
+        return Response(serializer.data)
+
+    def create(self, request):
+        if Cart.objects.filter(user=request.user).exists():
+            return Response(
+                {"detail": "User already has a cart."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        serializer = CartSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None):
+        cart = get_object_or_404(Cart, pk=pk)
+        self.check_object_permissions(request, cart)
+        serializer = CartSerializer(cart, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        cart = get_object_or_404(Cart, pk=pk)
+        self.check_object_permissions(request, cart)
+        cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
