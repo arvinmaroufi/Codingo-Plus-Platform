@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from Users.models import User
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from Courses.models import Course
 
 
 class Coupon(models.Model):
@@ -148,3 +149,38 @@ class Cart(models.Model):
             discount = (total * self.coupon.discount_value) / 100
             return total - discount
         return total
+
+
+class CourseItem(models.Model):
+    cart = models.ForeignKey(
+        Cart, 
+        on_delete=models.CASCADE, 
+        related_name='course_items',
+        verbose_name='سبد خرید'
+    )
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.CASCADE, 
+        verbose_name='دوره'
+    )
+    price = models.PositiveIntegerField(
+        verbose_name='قیمت دوره',
+        default=0
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name='تاریخ ایجاد'
+    )
+    
+    class Meta:
+        verbose_name = 'آیتم سبد خرید'
+        verbose_name_plural = 'آیتم های سبد خرید'
+        unique_together = ('cart', 'course')
+
+    def __str__(self):
+        return f'{self.course.title} در سبد {self.cart.user.username}'
+
+    def save(self, *args, **kwargs):
+        if not self.price or self.price == 0:
+            self.price = self.course.price if self.course.price else 0
+        super().save(*args, **kwargs)
