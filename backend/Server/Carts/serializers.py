@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Coupon
+from .models import Coupon, CourseItem
 
 
 class CouponSerializer(serializers.ModelSerializer):
@@ -31,3 +31,26 @@ class CouponSerializer(serializers.ModelSerializer):
                     {"valid_to": "End date must be after start date."}
                 )
         return data
+
+
+class CourseItemSerializer(serializers.ModelSerializer):
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    course_slug = serializers.CharField(source='course.slug', read_only=True)
+    
+    class Meta:
+        model = CourseItem
+        fields = [
+            'id',
+            'cart',
+            'course',
+            'course_title',
+            'course_slug',
+            'price',
+            'created_at',
+        ]
+        read_only_fields = ['price', 'created_at']
+
+    def create(self, validated_data):
+        if 'price' not in validated_data or validated_data['price'] == 0:
+            validated_data['price'] = validated_data['course'].price
+        return super().create(validated_data)
