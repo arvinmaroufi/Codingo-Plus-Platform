@@ -50,3 +50,21 @@ class CartRouter(routers.DefaultRouter):
             ])),
         ]
     
+    
+class CourseItemRouter(routers.DefaultRouter):
+    def __init__(self):
+        super().__init__()
+        self.register(r'', views.CourseItemViewSet, basename='courseitem')
+
+    def get_urls(self):
+        return [
+            path('', include([
+                path('', views.CourseItemViewSet.as_view({'get': 'list', 'post': 'create'})),
+                path('<int:pk>/', views.CourseItemViewSet.as_view({
+                    'get': 'retrieve',
+                    'put': 'update',
+                    'patch': 'partial_update',
+                    'delete': 'destroy'
+                })),
+            ])),
+        ]
