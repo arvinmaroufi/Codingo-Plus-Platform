@@ -95,6 +95,11 @@ class CartViewSet(ViewSet):
         self.check_object_permissions(request, cart)
         cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def my_cart(self, request):
+        query = get_object_or_404(Cart, user=request.user)
+        serializer = CartSerializer(query)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CourseItemViewSet(ViewSet):
