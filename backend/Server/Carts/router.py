@@ -31,22 +31,10 @@ class CartRouter(routers.DefaultRouter):
         return [
             path('', include([
                 path('', views.CartViewSet.as_view({'get': 'list', 'post': 'create'})),
-                path('<int:pk>/', views.CartViewSet.as_view({
-                    'get': 'retrieve',
-                    'put': 'update',
-                    'patch': 'partial_update',
-                    'delete': 'destroy'
-                })),
-                path('<int:pk>/items/', views.CourseItemViewSet.as_view({
-                    'get': 'list',
-                    'post': 'create'
-                })),
-                path('<int:pk>/items/<int:item_pk>/', views.CourseItemViewSet.as_view({
-                    'get': 'retrieve',
-                    'put': 'update',
-                    'patch': 'partial_update',
-                    'delete': 'destroy'
-                })),
+                path('detail/<int:pk>/', views.CartViewSet.as_view({'get': 'retrieve'})),
+                path('update/<int:pk>/', views.CartViewSet.as_view({'put': 'update'})),
+                path('delete/<int:pk>/', views.CartViewSet.as_view({'delete': 'destroy'})),
+                path('my-cart/', views.CartViewSet.as_view({'get': 'my_cart'})),
             ])),
         ]
     
