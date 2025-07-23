@@ -20,6 +20,7 @@ urlpatterns = [
     path('podcasts/', include('Podcasts.urls')),
     path('subscriptions/', include('Subscriptions.urls')),
     path('carts/', include('Carts.urls')),
+    path('orders/', include('Orders.urls')),
     # ckeditor_editor url
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ]   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
