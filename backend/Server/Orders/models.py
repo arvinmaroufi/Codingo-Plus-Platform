@@ -3,6 +3,7 @@ from shortuuid.django_fields import ShortUUIDField
 from django.core.validators import MinValueValidator
 from Users.models import User
 from Carts.models import Cart
+from Courses.models import Course
 
 
 class Order(models.Model):
@@ -83,3 +84,47 @@ class Order(models.Model):
     @property
     def formatted_discount(self):
         return f"{self.discount:,} ریال"
+
+
+class OrderCourseItem(models.Model):
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='course_items',
+        verbose_name='سفارش مرتبط'
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        related_name='order_items',
+        verbose_name='دوره'
+    )
+    price = models.PositiveIntegerField(
+        verbose_name='قیمت دوره',
+        validators=[MinValueValidator(0)]
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ به‌روزرسانی'
+    )
+
+    class Meta:
+        verbose_name = 'آیتم دوره سفارش'
+        verbose_name_plural = 'آیتم‌های دوره سفارش'
+        unique_together = ('order', 'course') 
+
+    def str(self):
+        return f'{self.course.title} در سفارش {self.order.order_id}'
+
+    def save(self, *args, **kwargs):
+        if not self.price or self.price == 0:
+            self.price = self.course.price if self.course.price else 0
+        super().save(*args, **kwargs)
+
+    @property
+    def formatted_price(self):
+        return f"{self.price:,} ریال"
