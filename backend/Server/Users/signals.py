@@ -14,6 +14,7 @@ from Profiles.models import (
 from Subscriptions.models import Subscription, SubscriptionPlan
 
 from Carts.models import Cart
+from Wallets.models import Wallet
 
 
 
@@ -56,3 +57,5 @@ def create_user_profiles(sender, instance, created, **kwargs):
         )
 
         Cart.objects.create(user=instance)
+        
+        Wallet.objects.create(user=instance)
