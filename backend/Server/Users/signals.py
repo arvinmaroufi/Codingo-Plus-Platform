@@ -13,6 +13,9 @@ from Profiles.models import (
 
 from Subscriptions.models import Subscription, SubscriptionPlan
 
+from Carts.models import Cart
+from Wallets.models import Wallet
+
 
 
 @receiver(post_save, sender=User)
@@ -52,3 +55,7 @@ def create_user_profiles(sender, instance, created, **kwargs):
             started_at=now,
             expires_at=expires_at,
         )
+
+        Cart.objects.create(user=instance)
+        
+        Wallet.objects.create(user=instance)
