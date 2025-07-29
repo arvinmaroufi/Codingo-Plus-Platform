@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAdminUser
 
 from .models import AdminProfile, StudentProfile, TeacherProfile, SupporterProfile
 from .serializers import AdminProfileSerializer, StudentProfileSerializer, TeacherProfileSerializer, SupporterProfileSerializer
-
+from .permissions import IsProfileOwnerOrAdmin
 
 
 
@@ -41,7 +41,7 @@ class AdminProfileViewSet(viewsets.ViewSet):
 
 class StudentProfileViewSet(viewsets.ViewSet):
 
-    permission_classes = []
+    permission_classes = [IsProfileOwnerOrAdmin]
     lookup_field = "username"
 
     def list(self, request):
@@ -68,7 +68,7 @@ class StudentProfileViewSet(viewsets.ViewSet):
 
 class TeacherProfileViewSet(viewsets.ViewSet):
 
-    permission_classes = []
+    permission_classes = [IsProfileOwnerOrAdmin]
     lookup_field = "username"
 
     def list(self, request):
@@ -95,7 +95,7 @@ class TeacherProfileViewSet(viewsets.ViewSet):
 
 class SupporterProfileViewSet(viewsets.ViewSet):
 
-    permission_classes = []
+    permission_classes = [IsProfileOwnerOrAdmin]
     lookup_field = "username"
 
     def list(self, request):
