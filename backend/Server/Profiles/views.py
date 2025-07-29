@@ -5,8 +5,8 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAdminUser
 
 
-from .models import AdminProfile
-from .serializers import AdminProfileSerializer
+from .models import AdminProfile, StudentProfile
+from .serializers import AdminProfileSerializer, StudentProfileSerializer
 
 
 
@@ -31,6 +31,33 @@ class AdminProfileViewSet(viewsets.ViewSet):
     def update(self, request, username):
         instance = get_object_or_404(AdminProfile, user__username=username)
         serializer = AdminProfileSerializer(instance, request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class StudentProfileViewSet(viewsets.ViewSet):
+
+    permission_classes = []
+    lookup_field = "username"
+
+    def list(self, request):
+        queryset = StudentProfile.objects.all()
+        serializer = StudentProfileSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def retrieve(self, request, username):
+        query = get_object_or_404(StudentProfile, user__username=username)
+        serializer = StudentProfileSerializer(query)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, username):
+        instance = get_object_or_404(StudentProfile, user__username=username)
+        serializer = StudentProfileSerializer(instance, request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
