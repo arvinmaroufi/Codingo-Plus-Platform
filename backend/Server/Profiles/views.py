@@ -5,8 +5,8 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAdminUser
 
 
-from .models import AdminProfile, StudentProfile, TeacherProfile
-from .serializers import AdminProfileSerializer, StudentProfileSerializer, TeacherProfileSerializer
+from .models import AdminProfile, StudentProfile, TeacherProfile, SupporterProfile
+from .serializers import AdminProfileSerializer, StudentProfileSerializer, TeacherProfileSerializer, SupporterProfileSerializer
 
 
 
@@ -63,7 +63,8 @@ class StudentProfileViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
             return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
 
 class TeacherProfileViewSet(viewsets.ViewSet):
 
@@ -84,6 +85,33 @@ class TeacherProfileViewSet(viewsets.ViewSet):
     def update(self, request, username):
         instance = get_object_or_404(TeacherProfile, user__username=username)
         serializer = TeacherProfileSerializer(instance, request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class SupporterProfileViewSet(viewsets.ViewSet):
+
+    permission_classes = []
+    lookup_field = "username"
+
+    def list(self, request):
+        queryset = SupporterProfile.objects.all()
+        serializer = SupporterProfileSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def retrieve(self, request, username):
+        query = get_object_or_404(SupporterProfile, user__username=username)
+        serializer = SupporterProfileSerializer(query)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, username):
+        instance = get_object_or_404(SupporterProfile, user__username=username)
+        serializer = SupporterProfileSerializer(instance, request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
