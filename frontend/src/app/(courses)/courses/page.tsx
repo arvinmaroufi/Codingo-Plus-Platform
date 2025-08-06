@@ -8,7 +8,7 @@ import { MdOutlineFeaturedPlayList } from 'react-icons/md';
 import CoursesFilter from "@/components/courses/CoursesFilter";
 import HeroSection from "@/components/HeroSection";
 import GradientCourseCard from "@/components/courses/GradientCourseCard";
-import Course from "@/types/course"
+import Course from "@/types/Course"
 
 
 
