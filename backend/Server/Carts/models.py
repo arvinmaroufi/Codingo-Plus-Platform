@@ -2,7 +2,7 @@ from django.db import models
 from Users.models import User
 from django.utils import timezone
 from Courses.models import Course
-from Coupons.models import Coupon
+from Discounts.models import Coupon
 
 
 class Cart(models.Model):
